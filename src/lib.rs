@@ -1,6 +1,11 @@
 #![forbid(unsafe_code)]
 
 use std::error::Error;
+// Start with ureq for simple http client calls.
+// Using reqwest may also be a good choice.
+use ureq::Request;
+
+// use reqwest::blocking;
 
 // ****************************************************************************
 // Library code for program keycmd
@@ -49,6 +54,11 @@ pub struct CmdArgs {
 // 
 pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     println!("Running with fingerprint: {}", cmd_args.fingerprint);
+    let body: String = ureq::get("https://dev.develop.tapis.io/v3/systems/healthcheck")
+        .set("X-Tapis-Token", "jwt_asldfkjdfj")
+        .call()?
+        .into_string()?;
+    println!("Got systems healthcheck: {}", body);
     Ok(())
 }
 
