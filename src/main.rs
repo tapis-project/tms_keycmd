@@ -31,73 +31,15 @@ use std::process;
 fn main() {
     println!("TMS keycmd v0.0.1");
     let args: Vec<String> = env::args().collect();
-    let cmd_args = tms_keycmd::parse_args(&args).expect(tms_keycmd::USAGE);
-    // let cmd_args = parse_args(&args).unwrap_or_else(|err| {
-    //     println!("Error parsing arguments: {err}");
-    //     process::exit(1);
-    // });
+    let cmd_args = tms_keycmd::parse_args(&args).unwrap_or_else(|err| {
+        println!("Error parsing arguments: {err}");
+        println!("Usage: {}", tms_keycmd::USAGE);
+        process::exit(1);
+    });
     println!("Calling TMS server using: username={}, userid={}, home_dir={}, fingerprint={}, keytype={}",
              cmd_args.username, cmd_args.userid, cmd_args.home_dir, cmd_args.fingerprint, cmd_args.keytype);
     if let Err(e) = tms_keycmd::run(cmd_args) {
         println!("Program error: {e}");
         process::exit(1);
-
     }
 }
-
-// // -----------------------------------
-// // Structures
-// // -----------------------------------
-// struct CmdArgs {
-//     username: String,
-//     userid: u32,
-//     home_dir: String,
-//     fingerprint: String,
-//     keytype: String
-// }
-
-// // -----------------------------------
-// // Functions
-// // -----------------------------------
-
-// //
-// // run
-// // Call TMS server and output result to stdout
-// // 
-// fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
-//     println!("We ran!");
-//     Ok(())
-// }
-
-// //
-// // parse_args
-// // Process the command line arguments
-// // 
-// fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
-//     let arg0 = args[0].clone();
-//     println!("Program = {}", arg0);
-//     // Check number of arguments
-//     if args.len() != 6 {
-//         return Err("Incorrect number of arguments. Please provide 5 arguments.");
-//     }
-//     // NOTE Use clone for clarity. Could be done faster and more efficiently without clone,
-//     //  but here such concerns are not critical and clone is more straightforward.
-//     let username = args[1].clone();
-//     let userid_str = args[2].clone();
-//     let home_dir = args[3].clone();
-//     let fingerprint = args[4].clone();
-//     let keytype = args[5].clone();
-
-//     // Log arguments
-//     println!("username={username} userid={userid_str} home_dir={home_dir} keytype={keytype}");
-//     println!("fingerprint={fingerprint}");
-
-//     // Parse 2nd argument as userid. It must be a number
-// //    let userid1: u32 = userid_str.trim().parse()?; Why is this incorrect?
-//     let userid: u32 = match userid_str.trim().parse() {
-//         Ok(num) => num,
-//         Err(_) => { return Err("userid must be a number") }
-//     };
-
-//     Ok(CmdArgs { username, userid, home_dir, fingerprint, keytype })
-// }

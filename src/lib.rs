@@ -76,7 +76,6 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
     println!("fingerprint={fingerprint}");
 
     // Parse 2nd argument as userid. It must be a number
-//    let userid1: u32 = userid_str.trim().parse()?; Why is this incorrect?
     let userid: u32 = match userid_str.trim().parse() {
         Ok(num) => num,
         Err(_) => { return Err("userid must be a number") }
