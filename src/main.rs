@@ -2,7 +2,6 @@
 
 use std::env;
 use std::process;
-// use tms_keycmd::CmdArgs;
 
 // ****************************************************************************
 // Program keycmd
@@ -31,13 +30,17 @@ use std::process;
 fn main() {
     println!("TMS keycmd v0.0.1");
     let args: Vec<String> = env::args().collect();
+
+    // Parse command line arguments
     let cmd_args = tms_keycmd::parse_args(&args).unwrap_or_else(|err| {
         println!("Error parsing arguments: {err}");
         println!("Usage: {}", tms_keycmd::USAGE);
         process::exit(1);
     });
+
     println!("Calling TMS server using: username={}, userid={}, home_dir={}, fingerprint={}, keytype={}",
              cmd_args.username, cmd_args.userid, cmd_args.home_dir, cmd_args.fingerprint, cmd_args.keytype);
+    // Run the main code and print error message if it fails
     if let Err(e) = tms_keycmd::run(cmd_args) {
         println!("Program error: {e}");
         process::exit(1);

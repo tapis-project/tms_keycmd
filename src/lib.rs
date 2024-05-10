@@ -1,9 +1,11 @@
 #![forbid(unsafe_code)]
 
 use std::error::Error;
+//use anyhow::{Context, Result, anyhow};
 // Start with ureq for simple http client calls.
 // Using reqwest may also be a good choice.
-use ureq::Request;
+use ureq::{Agent, AgentBuilder, Response};
+use std::time::Duration;
 
 // use reqwest::blocking;
 
@@ -28,14 +30,17 @@ use ureq::Request;
 // 
 // ****************************************************************************
 
-// -----------------------------------
+// ==========================================
 // Constants
-// -----------------------------------
+// ==========================================
 pub const USAGE : &str = "Usage: keycmd <username> <userid> <home_dir> <fingerprint> <keytype>";
 
-// -----------------------------------
+// ==========================================
 // Structures
-// -----------------------------------
+// ==========================================
+// ------------------------------------------
+// CmdArgs
+// ------------------------------------------
 pub struct CmdArgs {
     pub username: String,
     pub userid: u32,
@@ -44,27 +49,53 @@ pub struct CmdArgs {
     pub keytype: String
 }
 
-// -----------------------------------
+// ==========================================
 // Functions
-// -----------------------------------
+// ==========================================
 
-//
+// ------------------------------------------
 // run
 // Call TMS server and output result to stdout
-// 
+// ------------------------------------------
 pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     println!("Running with fingerprint: {}", cmd_args.fingerprint);
-    let body: String = ureq::get("https://dev.develop.tapis.io/v3/systems/healthcheck")
+
+    // Create the http agent
+    let agent: Agent = AgentBuilder:: new()
+        .timeout_read(Duration::from_secs(5))
+        .timeout_write(Duration::from_secs(5))
+        .build();
+
+    // Make the http request
+    // Simple form using anyhow and ? for error handling
+    // let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/asdfdsfdsfasdf")
+    //     .set("X-Tapis-Token", "jwt_asldfkjdfj")
+    //     .call().with_context(|| format!("Blah {}", "blah"))?;
+    // Simple form using ? for error handling
+    let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
         .set("X-Tapis-Token", "jwt_asldfkjdfj")
-        .call()?
-        .into_string()?;
+        .call()?;
+    // Verbose form with explicit error handling
+//     let resp: Response = match agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
+//         .set("X-Tapis-Token", "jwt_asldfkjdfj")
+//         .call() {
+//             Ok(response) => {response},
+//             Err(error) => { return Err(error.into()); }
+//             // Err(ureq::Error::Status(code, response)) => {
+//             //     // Server returned a non-200 error code, such as 400, 500, etc
+//             // },
+// //            Err(_) => { /* some other error */ return Err("failed") }
+//         };
+    let body = resp.into_string()?;
     println!("Got systems healthcheck: {}", body);
     Ok(())
 }
 
 //
+// ------------------------------------------
 // parse_args
 // Process the command line arguments
+// ------------------------------------------
 // 
 pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
     let arg0 = args[0].clone();
@@ -92,4 +123,60 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
     };
 
     Ok(CmdArgs { username, userid, home_dir, fingerprint, keytype })
+}
+
+// ==========================================
+// Unit tests
+// ==========================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Test with valid arguments
+    #[test]
+    fn test_okay() {
+        let okay_args: &[String] = &["keycmd".to_string(), "jdoe".to_string(), "1111".to_string(),
+                                     "/home/jdoe".to_string(), "abc_fingerprint_def".to_string(),
+                                     "ssh-key".to_string()];
+        let cmd_args = parse_args(okay_args).unwrap();
+        assert_eq!(cmd_args.username, "jdoe");
+        assert_eq!(cmd_args.userid, 1111);
+        assert_eq!(cmd_args.home_dir, "/home/jdoe");
+        assert_eq!(cmd_args.fingerprint, "abc_fingerprint_def");
+        assert_eq!(cmd_args.keytype, "ssh-key");
+    }
+
+    // Test with too many arguments
+    #[test]
+    fn test_too_many_args() {
+        let many_args: &[String] = &["keycmd".to_string(), "a1".to_string(), "a2".to_string(), "a3".to_string(),
+                                     "a4".to_string(), "a5".to_string(), "a6".to_string()];
+        let _cmd_args = match parse_args(many_args) {
+            Ok(_) => panic!("ERROR: Call with too many arguments should fail."),
+            Err(error) => assert!(error.contains("Incorrect number of arguments"))
+        };
+    }
+
+    // Test with too few arguments
+    #[test]
+    fn test_too_few_args() {
+        let few_args: &[String] = &["keycmd".to_string(), "a1".to_string(), "a2".to_string()];
+        let _cmd_args = match parse_args(few_args) {
+            Ok(_) => panic!("ERROR: Call with too few arguments should fail."),
+            Err(error) => assert!(error.contains("Incorrect number of arguments"))
+        };
+    }
+
+    // Test with invalid userid argument
+    #[test]
+    fn test_userid_not_num() {
+        let bad_userid_args: &[String] = &["keycmd".to_string(), "jdoe".to_string(), "1111a".to_string(),
+                                     "/home/jdoe".to_string(), "abc_fingerprint_def".to_string(),
+                                     "ssh-key".to_string()];
+        let _cmd_args = match parse_args(bad_userid_args) {
+            Ok(_) => panic!("ERROR: Call with invalid userid string should fail."),
+            Err(error) => assert!(error.contains("userid must be a number"))
+        };
+    }
 }
