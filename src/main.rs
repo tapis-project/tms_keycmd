@@ -2,7 +2,7 @@
 
 use std::env;
 use std::process;
-use tms_keycmd::{self};
+use tms_keycmd::{self}; // Include everything from lib.rs
 
 // ****************************************************************************
 // Program keycmd
