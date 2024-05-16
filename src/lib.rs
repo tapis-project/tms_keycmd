@@ -6,6 +6,8 @@ use std::error::Error;
 // Using reqwest may also be a good choice.
 use ureq::{Agent, AgentBuilder, Response};
 use std::time::Duration;
+use std::fmt;
+use std::str;
 
 // use reqwest::blocking;
 
@@ -36,6 +38,33 @@ use std::time::Duration;
 pub const USAGE : &str = "Usage: keycmd <username> <userid> <home_dir> <fingerprint> <keytype>";
 
 // ==========================================
+// Enumerations
+// ==========================================
+// ------------------------------------------
+// KeyType
+// ------------------------------------------
+#[derive(Debug, Eq, PartialEq, Hash)]
+pub enum KeyType {
+    SshKey
+}
+impl fmt::Display for KeyType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            KeyType::SshKey => write!(f, "ssh-key")
+        }
+    }
+}
+impl str::FromStr for KeyType {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ssh-key" => Ok(KeyType::SshKey),
+            _ => Err(format!("'{}' is not a valid key type", s))
+        }
+    }
+}
+
+// ==========================================
 // Structures
 // ==========================================
 // ------------------------------------------
@@ -46,7 +75,7 @@ pub struct CmdArgs {
     pub userid: u32,
     pub home_dir: String,
     pub fingerprint: String,
-    pub keytype: String
+    pub keytype: KeyType
 }
 
 // ==========================================
@@ -110,10 +139,10 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
     let userid_str = args[2].clone();
     let home_dir = args[3].clone();
     let fingerprint = args[4].clone();
-    let keytype = args[5].clone();
+    let keytype_str = args[5].clone();
 
     // Log arguments
-    println!("username={username} userid={userid_str} home_dir={home_dir} keytype={keytype}");
+    println!("username={username} userid={userid_str} home_dir={home_dir} keytype={keytype_str}");
     println!("fingerprint={fingerprint}");
 
     // Parse 2nd argument as userid. It must be a number
@@ -121,6 +150,12 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
         Ok(num) => num,
         Err(_) => { return Err("userid must be a number") }
     };
+    // Parse 5th argument as a KeyType
+    let keytype: KeyType = keytype_str.trim().parse().unwrap();
+    // let keytype: KeyType = match keytype_str.trim().parse() {
+    //     Ok(num) => num,
+    //     Err(_) => { return Err("userid must be a number") }
+    // };
 
     Ok(CmdArgs { username, userid, home_dir, fingerprint, keytype })
 }
@@ -144,7 +179,7 @@ mod tests {
         assert_eq!(cmd_args.userid, 1111);
         assert_eq!(cmd_args.home_dir, "/home/jdoe");
         assert_eq!(cmd_args.fingerprint, "abc_fingerprint_def");
-        assert_eq!(cmd_args.keytype, "ssh-key");
+        assert!(cmd_args.keytype == KeyType::SshKey);
     }
 
     // Test with too many arguments

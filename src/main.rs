@@ -2,6 +2,7 @@
 
 use std::env;
 use std::process;
+use tms_keycmd::{self};
 
 // ****************************************************************************
 // Program keycmd
