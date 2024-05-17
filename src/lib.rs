@@ -1,15 +1,17 @@
 #![forbid(unsafe_code)]
 
 use std::error::Error;
-//use anyhow::{Context, Result, anyhow};
-// Start with ureq for simple http client calls.
-// Using reqwest may also be a good choice.
-use ureq::{Agent, AgentBuilder, Response};
-use std::time::Duration;
 use std::fmt;
 use std::str;
-
-// use reqwest::blocking;
+use std::time::Duration;
+//use anyhow::{Context, Result, anyhow};
+// Start with ureq for simple http client calls.
+// Using reqwest may also be a good choice. use reqwest::blocking;
+use ureq::{Agent, AgentBuilder, Response};
+use gethostname::gethostname;
+use local_ip_address::local_ip;
+use serde::{Serialize, Deserialize};
+use serde_json::json;
 
 // ****************************************************************************
 // Library code for program keycmd
@@ -79,6 +81,21 @@ pub struct CmdArgs {
 //    pub keytype: KeyType // No need for this to be an enum. For info only
 }
 
+// ------------------------------------------
+// ReqPubKey
+// ------------------------------------------
+#[derive(Serialize, Deserialize)]
+pub struct ReqPubKey {
+    pub user: String,
+    pub user_uid: String,
+    pub user_home_dir: String,
+    pub host: String,
+    pub public_key_fingerprint: String,
+    pub requestor_host: String,
+    pub requestor_addr: String
+//    pub keytype: KeyType // No need for this to be an enum. For info only
+}
+
 // ==========================================
 // Functions
 // ==========================================
@@ -90,21 +107,55 @@ pub struct CmdArgs {
 pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     println!("Running with fingerprint: {}", cmd_args.fingerprint);
 
+    // Get the local host name and IP address
+    let local_host_name = gethostname();
+    println!("Found local hostname: {:?}", local_host_name);
+    let local_host_ip = local_ip().unwrap();
+    println!("Found local ip address: {}", local_host_ip);
+
+    // TODO Build the request body to be sent to the TMS server
+    let req_pub_key = ReqPubKey {
+        user: "testhostaccount1".to_owned(),
+        user_uid: "1".to_owned(),
+        user_home_dir: "/home/testaccount1".to_owned(),
+        host: "testhost1".to_owned(),
+        public_key_fingerprint: "SHA256:+oGXmhj1nu4snzHHJQimX7q3s0o8M7NRaFbxV7+pvfE".to_owned(),
+        requestor_host: "localhost".to_owned(),
+        requestor_addr: "127.0.0.1".to_owned()
+    };
+
+    let req_pub_key_str = serde_json::to_string(&req_pub_key)?;
+/*
+    {
+        "user": "testhostaccount1",
+        "user_uid": "1",
+        "user_home_dir": "/home/testaccount1",
+        "host": "testhost1",
+        "public_key_fingerprint": "SHA256:+oGXmhj1nu4snzHHJQimX7q3s0o8M7NRaFbxV7+pvfE",
+        "requestor_host": "localhost",
+        "requestor_addr": "127.0.0.1"
+    }
+*/
+
     // Create the http agent
     let agent: Agent = AgentBuilder:: new()
         .timeout_read(Duration::from_secs(5))
         .timeout_write(Duration::from_secs(5))
         .build();
 
+    // Send the post request
+    println!("Sending json request body: {}", req_pub_key_str);
+    let resp = agent.post("http://localhost:3001/tms/creds/publickey")
+         .send_json(ureq::json!(req_pub_key))?;
     // Make the http request
     // Simple form using anyhow and ? for error handling
     // let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/asdfdsfdsfasdf")
     //     .set("X-Tapis-Token", "jwt_asldfkjdfj")
     //     .call().with_context(|| format!("Blah {}", "blah"))?;
     // Simple form using ? for error handling
-    let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
-        .set("X-Tapis-Token", "jwt_asldfkjdfj")
-        .call()?;
+    // let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
+    //     .set("X-Tapis-Token", "jwt_asldfkjdfj")
+    //     .call()?;
     // Verbose form with explicit error handling
 //     let resp: Response = match agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
 //         .set("X-Tapis-Token", "jwt_asldfkjdfj")
@@ -117,7 +168,7 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
 // //            Err(_) => { /* some other error */ return Err("failed") }
 //         };
     let body = resp.into_string()?;
-    println!("Got systems healthcheck: {}", body);
+    println!("Got response: {}", body);
     Ok(())
 }
 

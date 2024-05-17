@@ -7,4 +7,8 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.83"
-ureq = "2.9.7"
+gethostname = "0.4.3"
+local-ip-address = "0.6.1"
+serde = { version = "1.0.202", features = ["derive"] }
+serde_json = "1.0.117"
+ureq = { version = "2.9.7", features = ["json", "charset"] }

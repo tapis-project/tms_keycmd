@@ -15,11 +15,11 @@ use tms_keycmd::{self}; // Include everything from lib.rs
 // If no public key is found then nothing is written to stdout.
 //
 // The following 5 arguments must be passed in on the command line:
-//     %u - login username
-//     %U - numeric login user id
-//     %h - home directory of login user
-//     %f - fingerprint of the public key to be fetched
-//     %t - ssh key type
+//     %u - login username (used in key lookup)
+//     %U - numeric login user id (info only)
+//     %h - home directory of login user (info only)
+//     %f - fingerprint of the public key to be fetched (used in key lookup)
+//     %t - ssh key type (info only)
 // Example:
 //   keycmd jdoe 1001 /home/jdoe SHA256:I/YLbfco8m4WWZSDSNZ/OnV26tt+BgtFAcAb94Co974 ssh-rsa
 // 
