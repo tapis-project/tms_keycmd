@@ -7,7 +7,9 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.83"
+figment = { version = "0.10.19", features = ["toml"] }
 gethostname = "0.4.3"
+hostname = "0.4.0"
 local-ip-address = "0.6.1"
 serde = { version = "1.0.202", features = ["derive"] }
 serde_json = "1.0.117"
