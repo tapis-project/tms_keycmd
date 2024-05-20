@@ -8,11 +8,9 @@ use std::time::Duration;
 // Start with ureq for simple http client calls.
 // Using reqwest may also be a good choice. use reqwest::blocking;
 use ureq::{Agent, AgentBuilder, Response};
-//use gethostname::gethostname;
-use hostname::get;
+use hostname;
 use local_ip_address::local_ip;
 use serde::{Serialize, Deserialize};
-use serde_json::json;
 use figment::{Figment, providers::{Format, Toml}};
 
 // ****************************************************************************
@@ -101,7 +99,7 @@ pub struct ReqPubKey {
 // ------------------------------------------
 // Config
 // ------------------------------------------
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Config {
     pub tms_url: String,
     pub host_name: String,
@@ -125,9 +123,14 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     let config: Config = Figment::new().merge(Toml::file("tms_keycmd.toml")).extract()?;
     println!("Using configuration - tms_url: {} host: {} client_id: {} client_secret: {}",
              config.tms_url, config.host_name, config.client_id, config.client_secret);
+    dbg!(&config);
+    // Check that we have all required config settings.
+    if config.tms_url.trim().is_empty() { panic!("Configuration attribute must be set: tms_url") };
+    if config.host_name.trim().is_empty() { panic!("Configuration attribute must be set: host_name") };
+    if config.client_secret.trim().is_empty() { panic!("Configuration attribute must be set: client_id") };
+    if config.client_id.trim().is_empty() { panic!("Configuration attribute must be set: client_secret") };
 
     // Get the local host name and IP address
-//    let local_host_name = gethostname();
     let local_host_name = hostname::get()?;
     let local_host_name_cow = local_host_name.to_string_lossy();
     let local_host_name_str = local_host_name_cow.to_string();
@@ -135,17 +138,26 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     let local_host_ip = local_ip().unwrap();
     println!("Found local ip address: {}", local_host_ip);
 
-    // TODO Build the request body to be sent to the TMS server
-//    let r = get_req_pub_key_from_args(cmd_args);
+    // Build the request body to be sent to the TMS server
     let req_pub_key = ReqPubKey {
-        user: "testhostaccount1".to_owned(),
-        user_uid: "1".to_owned(),
-        user_home_dir: "/home/testaccount1".to_owned(),
-        host: config.host_name.to_owned(),
-        public_key_fingerprint: "SHA256:+oGXmhj1nu4snzHHJQimX7q3s0o8M7NRaFbxV7+pvfE".to_owned(),
+        user: cmd_args.username,
+        user_uid: cmd_args.userid.to_string(),
+        user_home_dir: cmd_args.home_dir,
+        host: config.host_name,
+        public_key_fingerprint: cmd_args.fingerprint,
         requestor_host: local_host_name_str,
         requestor_addr: local_host_ip.to_string()
-    };
+};
+// //    let r = get_req_pub_key_from_args(cmd_args);
+//     let req_pub_key = ReqPubKey {
+//         user: "testhostaccount1".to_owned(),
+//         user_uid: "1".to_owned(),
+//         user_home_dir: "/home/testaccount1".to_owned(),
+//         host: config.host_name.to_owned(),
+//         public_key_fingerprint: "SHA256:+oGXmhj1nu4snzHHJQimX7q3s0o8M7NRaFbxV7+pvfE".to_owned(),
+//         requestor_host: local_host_name_str,
+//         requestor_addr: local_host_ip.to_string()
+//     };
 
     let req_pub_key_str = serde_json::to_string(&req_pub_key)?;
 /*
@@ -159,7 +171,6 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
         "requestor_addr": "127.0.0.1"
     }
 */
-
     // Create the http agent
     let agent: Agent = AgentBuilder:: new()
         .timeout_read(Duration::from_secs(5))
@@ -232,15 +243,6 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
     Ok(CmdArgs { username, userid, home_dir, fingerprint, keytype })
 }
 
-//
-// ------------------------------------------
-// get_req_pub_key_from_args
-// Build a 
-// ------------------------------------------
-// 
-// pub fn get_req_pub_key_from_args(args: &[String]) -> Result<ReqPubKey, &'static str>  {
-//     Ok(CmdArgs { username, userid, home_dir, fingerprint, keytype })
-// }
 
 // ==========================================
 // Unit tests
