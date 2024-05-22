@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 
+use std::env;
 use std::error::Error;
 use std::fmt;
 use std::str;
@@ -7,7 +8,10 @@ use std::time::Duration;
 //use anyhow::{Context, Result, anyhow};
 // Start with ureq for simple http client calls.
 // Using reqwest may also be a good choice. use reqwest::blocking;
-use ureq::{Agent, AgentBuilder, Response};
+//use ureq::{Agent, AgentBuilder, Response};
+// TODO/TBD: use attohttpc
+//use attohtpc;
+use serde_json::{json, Value};
 use hostname;
 use local_ip_address::local_ip;
 use serde::{Serialize, Deserialize};
@@ -116,14 +120,15 @@ pub struct Config {
 // Call TMS server and output result to stdout
 // ------------------------------------------
 pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
-    println!("Running with fingerprint: {}", cmd_args.fingerprint);
+    let cwd = env::current_dir()?;
+    log::info!("Running in current working directory: {}", cwd.display());
+    log::info!("Running with fingerprint: {}", cmd_args.fingerprint);
 
     // Read properties from a config file: tms_url, host_name, client_id, client_secret
     // All values are required
     let config: Config = Figment::new().merge(Toml::file("tms_keycmd.toml")).extract()?;
-    println!("Using configuration - tms_url: {} host: {} client_id: {} client_secret: {}",
+    log::info!("Using configuration - tms_url: {} host: {} client_id: {} client_secret: {}",
              config.tms_url, config.host_name, config.client_id, config.client_secret);
-    dbg!(&config);
     // Check that we have all required config settings.
     if config.tms_url.trim().is_empty() { panic!("Configuration attribute must be set: tms_url") };
     if config.host_name.trim().is_empty() { panic!("Configuration attribute must be set: host_name") };
@@ -134,9 +139,9 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     let local_host_name = hostname::get()?;
     let local_host_name_cow = local_host_name.to_string_lossy();
     let local_host_name_str = local_host_name_cow.to_string();
-    println!("Found local hostname: {:?}", local_host_name_str);
+    log::info!("Found local hostname: {:?}", local_host_name_str);
     let local_host_ip = local_ip().unwrap();
-    println!("Found local ip address: {}", local_host_ip);
+    log::info!("Found local ip address: {}", local_host_ip);
 
     // Build the request body to be sent to the TMS server
     let req_pub_key = ReqPubKey {
@@ -171,38 +176,53 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
         "requestor_addr": "127.0.0.1"
     }
 */
-    // Create the http agent
-    let agent: Agent = AgentBuilder:: new()
-        .timeout_read(Duration::from_secs(5))
-        .timeout_write(Duration::from_secs(5))
-        .build();
+    // // Create the http agent
+    // let agent: Agent = AgentBuilder:: new()
+    //     .timeout_read(Duration::from_secs(5))
+    //     .timeout_write(Duration::from_secs(5))
+    //     .build();
 
     // Send the post request
-    println!("Sending json request body: {}", req_pub_key_str);
-    let resp = agent.post(&config.tms_url)
-         .send_json(ureq::json!(req_pub_key))?;
-    // Make the http request
-    // Simple form using anyhow and ? for error handling
-    // let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/asdfdsfdsfasdf")
-    //     .set("X-Tapis-Token", "jwt_asldfkjdfj")
-    //     .call().with_context(|| format!("Blah {}", "blah"))?;
-    // Simple form using ? for error handling
-    // let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
-    //     .set("X-Tapis-Token", "jwt_asldfkjdfj")
-    //     .call()?;
-    // Verbose form with explicit error handling
-//     let resp: Response = match agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
-//         .set("X-Tapis-Token", "jwt_asldfkjdfj")
-//         .call() {
-//             Ok(response) => {response},
-//             Err(error) => { return Err(error.into()); }
-//             // Err(ureq::Error::Status(code, response)) => {
-//             //     // Server returned a non-200 error code, such as 400, 500, etc
-//             // },
-// //            Err(_) => { /* some other error */ return Err("failed") }
-//         };
-    let body = resp.into_string()?;
-    println!("Got response: {}", body);
+    log::info!("Sending json request body: {}", req_pub_key_str);
+    let resp = attohttpc::post(&config.tms_url).json(&req_pub_key)?.send()?;
+    if resp.is_success() {
+        let resp_json: Value = resp.json()?;
+//        println!("resp_json:\n{}", resp_json);
+        let pub_key_str = resp_json["public_key"].as_str().unwrap().trim();
+        println!("{}", pub_key_str);
+//        println!("Body:\n{}", resp.text_utf8()?);
+//        let body: Value = resp_json
+    }
+//     let resp = agent.post(&config.tms_url)
+//          .send_json(ureq::json!(req_pub_key))?;
+//     // Make the http request
+//     // Simple form using anyhow and ? for error handling
+//     // let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/asdfdsfdsfasdf")
+//     //     .set("X-Tapis-Token", "jwt_asldfkjdfj")
+//     //     .call().with_context(|| format!("Blah {}", "blah"))?;
+//     // Simple form using ? for error handling
+//     // let resp: Response = agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
+//     //     .set("X-Tapis-Token", "jwt_asldfkjdfj")
+//     //     .call()?;
+//     // Verbose form with explicit error handling
+// //     let resp: Response = match agent.get("https://dev.develop.tapis.io/v3/systems/healthcheck")
+// //         .set("X-Tapis-Token", "jwt_asldfkjdfj")
+// //         .call() {
+// //             Ok(response) => {response},
+// //             Err(error) => { return Err(error.into()); }
+// //             // Err(ureq::Error::Status(code, response)) => {
+// //             //     // Server returned a non-200 error code, such as 400, 500, etc
+// //             // },
+// // //            Err(_) => { /* some other error */ return Err("failed") }
+// //         };
+
+
+
+    // let body = resp.into_string()?;
+    // let body_json = resp.into_json()?;
+    // log::info!("Got response: {}", resp.into_json().unwrap().);
+    // println!("{}", bod.)
+    // // TODO Write public key to stdout
     Ok(())
 }
 
@@ -214,7 +234,7 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
 // 
 pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
     let arg0 = args[0].clone();
-    println!("Program = {}", arg0);
+    log::info!("Program = {}", arg0);
     // Check number of arguments
     if args.len() != 6 {
         return Err("Incorrect number of arguments. Please provide 5 arguments.");
@@ -229,8 +249,8 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
 //    let keytype_str = args[5].clone();
 
     // Log arguments
-    println!("username={username} userid={userid_str} home_dir={home_dir} keytype={keytype}");
-    println!("fingerprint={fingerprint}");
+    log::info!("username={username} userid={userid_str} home_dir={home_dir} keytype={keytype}");
+    log::info!("fingerprint={fingerprint}");
 
     // Parse 2nd argument as userid. It must be a number
     let userid: u32 = match userid_str.trim().parse() {

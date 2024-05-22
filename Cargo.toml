@@ -7,9 +7,12 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.83"
+attohttpc = { version = "0.28.0", features = ["json"] }
 figment = { version = "0.10.19", features = ["toml"] }
 hostname = "0.4.0"
 local-ip-address = "0.6.1"
+log = "0.4.21"
+log4rs = "1.3.0"
 serde = { version = "1.0.202", features = ["derive"] }
 serde_json = "1.0.117"
-ureq = { version = "2.9.7", features = ["json", "charset"] }
+# ureq = { version = "2.9.7", features = ["json", "charset"] }

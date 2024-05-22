@@ -21,3 +21,6 @@ Cargo.lock
 
 # Config file
 tms_keycmd.toml
+
+# Log file
+tms_keycmd.log
