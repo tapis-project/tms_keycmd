@@ -10,7 +10,7 @@ use tms_keycmd::{self}; // Include everything from lib.rs
 // Command line program to support the SSH AuthorizedKeysCommand option for
 // retrieving authorized public keys for a user during ssh login.
 // 
-// This program accepts 5 arguments and calls the Trust Manager System (TMS)
+// This program accepts 4 arguments and calls the Trust Manager System (TMS)
 // server to fetch the associated public key.
 // If a public key is found it is written to stdout.
 // If no public key is found then nothing is written to stdout.
@@ -19,11 +19,10 @@ use tms_keycmd::{self}; // Include everything from lib.rs
 // The following 5 arguments must be passed in on the command line:
 //     %u - login username (used in key lookup)
 //     %U - numeric login user id (info only)
-//     %h - home directory of login user (info only)
 //     %f - fingerprint of the public key to be fetched (used in key lookup)
 //     %t - ssh key type (info only)
 // Example:
-//   keycmd jdoe 1001 /home/jdoe SHA256:I/YLbfco8m4WWZSDSNZ/OnV26tt+BgtFAcAb94Co974 ssh-rsa
+//   keycmd jdoe 1001 SHA256:I/YLbfco8m4WWZSDSNZ/OnV26tt+BgtFAcAb94Co974 ssh-rsa
 // 
 // ****************************************************************************
 
@@ -32,6 +31,7 @@ use tms_keycmd::{self}; // Include everything from lib.rs
 // -----------------------------------
 fn main() -> Result<(), SetLoggerError> {
     // Initialize logger
+    // TODO/TBD - support finding logger config file using an env variable.
     log4rs::init_file("log4rs.yml", Default::default()).unwrap();
 
     log::info!("TMS keycmd v0.0.1");
@@ -44,8 +44,8 @@ fn main() -> Result<(), SetLoggerError> {
         process::exit(1);
     });
 
-    log::info!("Calling TMS server using: username={}, userid={}, home_dir={}, fingerprint={}, keytype={}",
-             cmd_args.username, cmd_args.userid, cmd_args.home_dir, cmd_args.fingerprint, cmd_args.keytype);
+    log::info!("Calling TMS server using: username={}, userid={}, fingerprint={}, keytype={}",
+             cmd_args.username, cmd_args.userid, cmd_args.fingerprint, cmd_args.keytype);
     // Run the main code and log error message if it fails
     if let Err(e) = tms_keycmd::run(cmd_args) {
         log::error!("Program error: {e}");
