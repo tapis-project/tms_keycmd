@@ -3,6 +3,8 @@
 use std::env;
 use std::error::Error;
 use std::fmt;
+use std::io;
+use std::io::Write;
 use std::str;
 use std::time::Duration;
 //use anyhow::{Context, Result, anyhow};
@@ -187,9 +189,11 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     let resp = attohttpc::post(&config.tms_url).json(&req_pub_key)?.send()?;
     if resp.is_success() {
         let resp_json: Value = resp.json()?;
-//        println!("resp_json:\n{}", resp_json);
+        log::info!("Got resp_json: {}", resp_json);
         let pub_key_str = resp_json["public_key"].as_str().unwrap().trim();
-        println!("{}", pub_key_str);
+        log::info!("Writing pubkey to stdout: {}", pub_key_str);
+        print!("{}", pub_key_str);
+        io::stdout().flush().unwrap();
 //        println!("Body:\n{}", resp.text_utf8()?);
 //        let body: Value = resp_json
     }
