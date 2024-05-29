@@ -4,7 +4,6 @@
 #   an arbitrary location.
 #
 # Determine current directory
-set -xv
 RUN_DIR="$(pwd -P)"
 
 # Determine absolute path to location from which we are running.
