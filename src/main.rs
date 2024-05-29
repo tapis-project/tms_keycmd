@@ -16,7 +16,7 @@ use tms_keycmd::{self}; // Include everything from lib.rs
 // If no public key is found then nothing is written to stdout.
 // All other output is written to the log file.
 //
-// The following 5 arguments must be passed in on the command line:
+// The following 4 arguments must be passed in on the command line:
 //     %u - login username (used in key lookup)
 //     %U - numeric login user id (info only)
 //     %f - fingerprint of the public key to be fetched (used in key lookup)
