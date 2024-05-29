@@ -25,7 +25,7 @@ use figment::{Figment, providers::{Format, Toml}};
 // to stdout.
 // If no public key is found then nothing is written to stdout.
 //
-// The following 5 arguments must be passed in on the command line:
+// The following 4 arguments must be passed in on the command line:
 //     %u - login username
 //     %U - numeric login user id
 //     %f - fingerprint of the public key to be fetched
@@ -83,11 +83,13 @@ pub struct CmdArgs {
 
 // ------------------------------------------
 // ReqPubKey
+// TODO For now we do need user_home dir for request. See Rich about removing from server
 // ------------------------------------------
 #[derive(Serialize, Deserialize)]
 pub struct ReqPubKey {
     pub user: String,
     pub user_uid: String,
+    pub user_home_dir: String,
     pub host: String,
     pub public_key_fingerprint: String,
     pub requestor_host: String,
@@ -121,7 +123,6 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
 
     // Read properties from a config file: tms_url, host_name, client_id, client_secret
     // All values are required
-    // TODO/TBD - Support reading some configuration from env variables
     let config: Config = Figment::new().merge(Toml::file("tms_keycmd.toml")).extract()?;
     log::info!("Using configuration - tms_url: {} host: {} client_id: {} client_secret: {}",
              config.tms_url, config.host_name, config.client_id, config.client_secret);
@@ -143,6 +144,7 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     let req_pub_key = ReqPubKey {
         user: cmd_args.username,
         user_uid: cmd_args.userid.to_string(),
+        user_home_dir: "/home/test".to_string(),
         host: config.host_name,
         public_key_fingerprint: cmd_args.fingerprint,
         requestor_host: local_host_name_str,
@@ -151,13 +153,15 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
 
     let req_pub_key_str = serde_json::to_string(&req_pub_key)?;
 
-    // Send the post request
+    // Send the post request and receive the response
     log::info!("Sending json request body: {}", req_pub_key_str);
     let resp = attohttpc::post(&config.tms_url).json(&req_pub_key)?.send()?;
     if resp.is_success() {
+        // Log the response and extract the public key
         let resp_json: Value = resp.json()?;
         log::info!("Got resp_json: {}", resp_json);
         let pub_key_str = resp_json["public_key"].as_str().unwrap().trim();
+        // Write the public key to stdout
         log::info!("Writing pubkey to stdout: {}", pub_key_str);
         print!("{}", pub_key_str);
         io::stdout().flush().unwrap();
@@ -176,7 +180,7 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
     log::info!("Program = {}", arg0);
     // Check number of arguments
     if args.len() != 5 {
-        return Err("Incorrect number of arguments. Please provide 5 arguments.");
+        return Err("Incorrect number of arguments. Please provide 4 arguments.");
     }
     // NOTE Use clone for clarity. Could be done faster and more efficiently without clone,
     //  but here such concerns are not critical and clone is more straightforward.

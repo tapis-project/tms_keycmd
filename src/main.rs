@@ -31,7 +31,6 @@ use tms_keycmd::{self}; // Include everything from lib.rs
 // -----------------------------------
 fn main() -> Result<(), SetLoggerError> {
     // Initialize logger
-    // TODO/TBD - support finding logger config file using an env variable.
     log4rs::init_file("log4rs.yml", Default::default()).unwrap();
 
     log::info!("TMS keycmd v0.0.1");
