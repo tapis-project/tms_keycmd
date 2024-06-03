@@ -2,7 +2,7 @@
 
 use std::env;
 use std::process;
-use log::{debug, error, info, trace, warn, LevelFilter, SetLoggerError};
+use log::SetLoggerError;
 use tms_keycmd::{self}; // Include everything from lib.rs
 
 // ****************************************************************************

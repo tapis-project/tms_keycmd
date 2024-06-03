@@ -9,7 +9,7 @@ use std::str;
 //use anyhow::{Context, Result, anyhow};
 // Start with attohttpc for simple http client calls.
 // Using reqwest may also be a good choice. use reqwest::blocking;
-use serde_json::{json, Value};
+use serde_json::Value;
 use hostname;
 use local_ip_address::local_ip;
 use serde::{Serialize, Deserialize};
@@ -83,17 +83,14 @@ pub struct CmdArgs {
 
 // ------------------------------------------
 // ReqPubKey
-// TODO For now we do need user_home dir for request. See Rich about removing from server
 // ------------------------------------------
 #[derive(Serialize, Deserialize)]
 pub struct ReqPubKey {
     pub user: String,
     pub user_uid: String,
-    pub user_home_dir: String,
     pub host: String,
     pub public_key_fingerprint: String,
-    pub requestor_host: String,
-    pub requestor_addr: String
+    pub key_type: String
 //    pub keytype: KeyType // No need for this to be an enum. For info only
 }
 
@@ -144,11 +141,9 @@ pub fn run(cmd_args: CmdArgs) -> Result<(), Box<dyn Error>> {
     let req_pub_key = ReqPubKey {
         user: cmd_args.username,
         user_uid: cmd_args.userid.to_string(),
-        user_home_dir: "/home/test".to_string(),
         host: config.host_name,
         public_key_fingerprint: cmd_args.fingerprint,
-        requestor_host: local_host_name_str,
-        requestor_addr: local_host_ip.to_string()
+        key_type: cmd_args.keytype
     };
 
     let req_pub_key_str = serde_json::to_string(&req_pub_key)?;
