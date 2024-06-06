@@ -71,6 +71,15 @@ client_id="tacc_tapis"
 client_secret="*****************"
 ```
 
+Note that the attribute ``host_name`` does not need to match the host name reported
+by the operating system. It is up to the TMS administrator to set the host name
+correctly. Having this attribute independent of the host name reported by the
+operating system allows for supporting a machine that might be referenced using
+many different host names, such as ``login1.stampede3.tacc.utexas.edu``,
+``stampede3.tacc.utexas.edu``, ``stampede3``, ``129.114.63.133``, etc.
+For example, for the Tapis v3 deployment at TACC, any Tapis system registered using
+any of the aforementioned host names will route to the same machine.
+
 ## Configuration of SSHD
 
 To configure a host to make use of tms_keycmd, the sshd configuration file on
