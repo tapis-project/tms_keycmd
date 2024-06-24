@@ -2,7 +2,6 @@
 
 use std::env;
 use std::process;
-use log::SetLoggerError;
 use tms_keycmd::{self}; // Include everything from lib.rs
 
 // ****************************************************************************
@@ -29,14 +28,16 @@ use tms_keycmd::{self}; // Include everything from lib.rs
 // -----------------------------------
 // Main
 // -----------------------------------
-fn main() -> Result<(), SetLoggerError> {
-    // Initialize logger
-    log4rs::init_file("log4rs.yml", Default::default()).unwrap();
+fn main() {
+    // Check config and initialize. If init fails it will log an error and return false.
+    if !tms_keycmd::tms_init() { process::exit(1); }
 
+    // Log startup and collect command line arguments
     log::info!("TMS keycmd v0.0.1");
     let args: Vec<String> = env::args().collect();
 
     // Parse command line arguments
+    // TODO move error handling into library method?
     let cmd_args = tms_keycmd::parse_args(&args).unwrap_or_else(|err| {
         log::error!("Error parsing arguments: {err}");
         log::error!("Usage: {}", tms_keycmd::USAGE);
@@ -44,11 +45,12 @@ fn main() -> Result<(), SetLoggerError> {
     });
 
     log::info!("Calling TMS server using: username={}, userid={}, fingerprint={}, keytype={}",
-             cmd_args.username, cmd_args.userid, cmd_args.fingerprint, cmd_args.keytype);
-    // Run the main code and log error message if it fails
-    if let Err(e) = tms_keycmd::run(cmd_args) {
-        log::error!("Program error: {e}");
-        process::exit(1);
-    }
-    Ok(())
+               cmd_args.username, cmd_args.userid, cmd_args.fingerprint, cmd_args.keytype);
+    // Run the main code. If it fails it will log error message and return false
+    if !tms_keycmd::run(cmd_args) { process::exit(1); }
+    process::exit(0);
 }
+
+// ==========================================
+// Private functions
+// ==========================================
