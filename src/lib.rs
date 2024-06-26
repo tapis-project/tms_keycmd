@@ -9,8 +9,6 @@ use std::str;
 use anyhow::{Result, anyhow};
 use figment::{Figment, providers::{Format, Toml}};
 use fs_mistrust::Mistrust;
-use hostname;
-use local_ip_address::local_ip;
 use path_absolutize::Absolutize;
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
@@ -93,14 +91,56 @@ pub struct Config {
 //   Initialize tms_keycmd. If init fails log an error and return false.
 // -----------------------------------
 pub fn tms_init() -> bool {
-    // TODO Check that config files exist and have correct permissions   
+    // TODO Check that config files exist and have correct permissions
+    // Initialize mistrust
+    let mistrust = match Mistrust::builder()
+        .ignore_prefix(get_absolute_path("./"))
+        .trust_group(0)
+        .build() {
+            Ok(m) => m,
+            Err(e) => {
+                eprintln!("Unable to initialize mistrust. Error: {e}");
+                return false
+            }
+        };
+
+    let home_dir = get_absolute_path("./");
+
+    // TODO Check log config file
+    let path_str= home_dir.clone() + LOG_CFG_FILE;
+    let path= Path::new(&path_str);
+    if !path.exists() {
+        eprintln!("Unable to initialize logger config. Path not found. Path: {}", path_str.clone());
+        return false
+    }
+    if !path.is_file() {
+        eprintln!("Unable to initialize logger config. Path not a file. Path: {}", path_str.clone());
+        return false
+    }
+    match mistrust.check_directory(path_str.clone()) {
+        Ok(()) => (),
+        Err(e) => {
+            eprintln!("Unable to initialize logger config. Path not secure. Path: {} Mistrust error: {}", path_str.clone(), e);
+            return false
+        }
+    }
+
+    // Use Mistrust to check file permissions.
+    // Check log config file
+    match mistrust.verifier().require_file().check(LOG_CFG_FILE) {
+        Ok(()) => (),
+        Err(e) => {
+            eprintln!("Logger config file missing or invalid permissions. Config file: {}, Error: {}", LOG_CFG_FILE, e);
+            return false;
+        }
+    }
 
     // Initialize logger
     // On error write to stderr using eprintln
     match log4rs::init_file(LOG_CFG_FILE, Default::default()) {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("{}", e);
+            eprintln!("Unable to initialize logger from config file. Config file: {}, Error: {}", LOG_CFG_FILE, e);
             return false;
         }
     }
@@ -112,53 +152,34 @@ pub fn tms_init() -> bool {
 // On success return true
 // On error log message and return false
 // ------------------------------------------
+#[allow(clippy::needless_return)]
 pub fn run(cmd_args: CmdArgs) -> bool {
     let cwd = match env::current_dir() {
         Ok(path_buf) => path_buf,
         Err(error) => {
-            log::error!("Unable to determine current directory. Error: {error:?}");
+            log::error!("Unable to determine current directory. Error: {error}");
             return false
         }
     };
-    log::info!("Running in current working directory: {}", cwd.display());
-    log::info!("Running with fingerprint: {}", cmd_args.fingerprint);
+    log::debug!("Running in current working directory: {}", cwd.to_string_lossy());
+    log::debug!("Running with fingerprint: {}", cmd_args.fingerprint);
 
     // Read properties from a config file: tms_url, host_name, client_id, client_secret
     // All values are required
     let config: Config =  match Figment::new().merge(Toml::file(CFG_FILE)).extract() {
         Ok(c) => c,
         Err(error) => {
-            log::error!("Error reading config file. File: {CFG_FILE:?}. Error: {error:?}");
+            log::error!("Error reading config file. File: {CFG_FILE}. Error: {error}");
             return false
-        } 
+        }
     };
-    log::info!("Using configuration - tms_url: {} host: {} client_id: {} client_secret: {}",
+    log::debug!("Using configuration - tms_url: {} host: {} client_id: {} client_secret: {}",
                config.tms_url, config.host_name, config.client_id, config.client_secret);
     // Check that we have all required config settings.
     if config.tms_url.trim().is_empty() { log::error!("Configuration attribute must be set: tms_url"); return false };
     if config.host_name.trim().is_empty() { log::error!("Configuration attribute must be set: host_name"); return false };
     if config.client_secret.trim().is_empty() { log::error!("Configuration attribute must be set: client_id"); return false };
     if config.client_id.trim().is_empty() { log::error!("Configuration attribute must be set: client_secret"); return false };
-
-    // Get the local host name and IP address
-    let local_host_name = match hostname::get() {
-        Ok(h) => h,
-        Err(error) => {
-            log::error!("Error determining local host name. Error: {error:?}");
-            return false
-        }
-    };
-    let local_host_name_cow = local_host_name.to_string_lossy();
-    let local_host_name_str = local_host_name_cow.to_string();
-    log::info!("Found local hostname: {:?}", local_host_name_str);
-    let local_host_ip = match local_ip() {
-        Ok(ipaddr) => ipaddr,
-        Err(error) => {
-            log::error!("Error determing local IP address: {error}");
-            return false    
-        }
-    };
-    log::info!("Found local ip address: {}", local_host_ip);
 
     // Build the request body to be sent to the TMS server
     let req_pub_key = ReqPubKey {
@@ -173,12 +194,12 @@ pub fn run(cmd_args: CmdArgs) -> bool {
     let pub_key_str = match send_request(&req_pub_key, &config.tms_url) {
         Ok(pub_key) => pub_key,
         Err(error) => {
-            log::error!("Error retrieving public key from TMS server. Error: {error:?}");
+            log::error!("Error retrieving public key from TMS server. Error: {error}");
             return false
         }
     };
     // Write the public key to stdout
-    log::info!("Writing public key to stdout: {}", pub_key_str);
+    log::debug!("Writing public key to stdout: {pub_key_str}");
     print!("{}", pub_key_str);
     match io::stdout().flush() {
         Ok(()) => return true,
@@ -193,12 +214,12 @@ pub fn run(cmd_args: CmdArgs) -> bool {
 // parse_args
 // Process the command line arguments
 // ------------------------------------------
-pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
+pub fn parse_args(args: &[String]) -> Result<CmdArgs>  {
     let arg0 = args[0].clone();
-    log::info!("Program = {}", arg0);
+    log::debug!("Program = {}", arg0);
     // Check number of arguments
     if args.len() != 5 {
-        return Err("Incorrect number of arguments. Please provide 4 arguments.");
+        return Err(anyhow!("Incorrect number of arguments. Please provide 4 arguments."));
     }
     // NOTE Use clone for clarity. Could be done faster and more efficiently without clone,
     //  but here such concerns are not critical and clone is more straightforward.
@@ -208,13 +229,15 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
     let keytype = args[4].clone();
 
     // Log arguments
-    log::info!("username={username} userid={userid_str} keytype={keytype}");
-    log::info!("fingerprint={fingerprint}");
+    log::debug!("username={username} userid={userid_str} keytype={keytype}");
+    log::debug!("fingerprint={fingerprint}");
 
     // Parse 2nd argument as userid. It must be a number
     let userid: u32 = match userid_str.trim().parse() {
         Ok(num) => num,
-        Err(_) => { return Err("userid must be a number") }
+        Err(e) => {
+             return Err(anyhow!("userid must be a number. Error: {e}"))
+             }
     };
 
     Ok(CmdArgs { username, userid, fingerprint, keytype })
@@ -228,43 +251,28 @@ pub fn parse_args(args: &[String]) -> Result<CmdArgs, &'static str>  {
 // send_request
 // Send the post request and extract the public key from the response
 // ------------------------------------------
+#[allow(clippy::needless_return)]
 pub fn send_request(req_pub_key: &ReqPubKey, tms_url: &String) -> Result<String> {
     let req_pub_key_str = serde_json::to_string(&req_pub_key)?;
-    log::info!("Sending json request body: {}", req_pub_key_str);
+    log::debug!("Sending json request body: {}", req_pub_key_str);
     let resp = attohttpc::post(tms_url).json(&req_pub_key)?.send()?;
     // Find out result status. Do this before getting json because getting json moves the Response value.
     let resp_ok = resp.is_success();
     // Convert the response to json and log it
     let resp_json: Value = resp.json()?;
-    log::info!("Received json response: {}", resp_json);
+    log::debug!("Received json response: {}", resp_json);
     if !resp_ok {
-         return Result::Err(anyhow!("Request not successful. Please see response received."));
+         return Err(anyhow!("Request not successful. Please see response received."));
     } else {
         // Extract the public key from the json and return it as a String
         let pub_key_str = match resp_json["public_key"].as_str() {
             Some(s) => s,
-            None => return Result::Err(anyhow!("Unable to find public key in json response. Please see response received."))
+            None => return Err(anyhow!("Unable to find public key in json response. Please see response received."))
         };
-        return Result::Ok(pub_key_str.to_string());
+        return Ok(pub_key_str.to_string());
     }
 }
 
-// ------------------------------------------
-// get_mistrust
-// Construct a mistrust object for file permission checks
-// ------------------------------------------
-fn get_mistrust() -> Mistrust {
-    let mistrust = match Mistrust::builder() 
-        .ignore_prefix(get_absolute_path("./"))
-        .trust_group(0)
-        .build() {
-            Ok(m) => m,
-            Err(e) => {
-                panic!("Mistrust configuration error: {}", &e.to_string());
-            }
-        };
-    mistrust
-}
 
 // ------------------------------------------
 // get_absolute_path
@@ -318,7 +326,7 @@ mod tests {
                                      "a4".to_string(), "a5".to_string(), "a6".to_string()];
         let _cmd_args = match parse_args(many_args) {
             Ok(_) => panic!("ERROR: Call with too many arguments should fail."),
-            Err(error) => assert!(error.contains("Incorrect number of arguments"))
+            Err(error) => assert!(error.to_string().contains("Incorrect number of arguments"))
         };
     }
 
@@ -328,7 +336,7 @@ mod tests {
         let few_args: &[String] = &["keycmd".to_string(), "a1".to_string(), "a2".to_string()];
         let _cmd_args = match parse_args(few_args) {
             Ok(_) => panic!("ERROR: Call with too few arguments should fail."),
-            Err(error) => assert!(error.contains("Incorrect number of arguments"))
+            Err(error) => assert!(error.to_string().contains("Incorrect number of arguments"))
         };
     }
 
@@ -340,7 +348,7 @@ mod tests {
                                      "ssh-key".to_string()];
         let _cmd_args = match parse_args(bad_userid_args) {
             Ok(_) => panic!("ERROR: Call with invalid userid string should fail."),
-            Err(error) => assert!(error.contains("userid must be a number"))
+            Err(error) => assert!(error.to_string().contains("userid must be a number"))
         };
     }
 }

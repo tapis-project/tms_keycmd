@@ -37,15 +37,14 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     // Parse command line arguments
-    // TODO move error handling into library method?
     let cmd_args = tms_keycmd::parse_args(&args).unwrap_or_else(|err| {
         log::error!("Error parsing arguments: {err}");
         log::error!("Usage: {}", tms_keycmd::USAGE);
         process::exit(1);
     });
 
-    log::info!("Calling TMS server using: username={}, userid={}, fingerprint={}, keytype={}",
-               cmd_args.username, cmd_args.userid, cmd_args.fingerprint, cmd_args.keytype);
+    log::debug!("Calling TMS server using: username={}, userid={}, fingerprint={}, keytype={}",
+                cmd_args.username, cmd_args.userid, cmd_args.fingerprint, cmd_args.keytype);
     // Run the main code. If it fails it will log error message and return false
     if !tms_keycmd::run(cmd_args) { process::exit(1); }
     process::exit(0);
