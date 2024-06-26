@@ -3,13 +3,10 @@
 use std::env;
 use std::io;
 use std::io::Write;
-use std::ops::Deref;
-use std::path::Path;
 use std::str;
 use anyhow::{Result, anyhow};
 use figment::{Figment, providers::{Format, Toml}};
 use fs_mistrust::Mistrust;
-use path_absolutize::Absolutize;
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
 
@@ -91,10 +88,19 @@ pub struct Config {
 //   Initialize tms_keycmd. If init fails log an error and return false.
 // -----------------------------------
 pub fn tms_init() -> bool {
-    // TODO Check that config files exist and have correct permissions
+    // Get current working directory
+    let work_dir = match env::current_exe() {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("Unable to determine current working directory. Error: {e}");
+            return false
+        }
+    };
+
+    // Use Mistrust to check that config files exist and have acceptable permissions
     // Initialize mistrust
     let mistrust = match Mistrust::builder()
-        .ignore_prefix(get_absolute_path("./"))
+        .ignore_prefix(&work_dir)
         .trust_group(0)
         .build() {
             Ok(m) => m,
@@ -104,46 +110,56 @@ pub fn tms_init() -> bool {
             }
         };
 
-    let home_dir = get_absolute_path("./");
-
-    // TODO Check log config file
-    let path_str= home_dir.clone() + LOG_CFG_FILE;
-    let path= Path::new(&path_str);
-    if !path.exists() {
-        eprintln!("Unable to initialize logger config. Path not found. Path: {}", path_str.clone());
-        return false
-    }
-    if !path.is_file() {
-        eprintln!("Unable to initialize logger config. Path not a file. Path: {}", path_str.clone());
-        return false
-    }
-    match mistrust.check_directory(path_str.clone()) {
-        Ok(()) => (),
+    // Build log config file path and check it with mistrust
+    let log_cfg_path = work_dir.join(LOG_CFG_FILE);
+    match mistrust.verifier().require_file().check(&log_cfg_path) {
+        Ok(p) => p,
         Err(e) => {
-            eprintln!("Unable to initialize logger config. Path not secure. Path: {} Mistrust error: {}", path_str.clone(), e);
+            eprintln!("Mistrust check on log config file failed. Path: {} Error: {e}", log_cfg_path.display());
             return false
         }
-    }
-
-    // Use Mistrust to check file permissions.
-    // Check log config file
-    match mistrust.verifier().require_file().check(LOG_CFG_FILE) {
-        Ok(()) => (),
-        Err(e) => {
-            eprintln!("Logger config file missing or invalid permissions. Config file: {}, Error: {}", LOG_CFG_FILE, e);
-            return false;
-        }
-    }
+    };
 
     // Initialize logger
     // On error write to stderr using eprintln
     match log4rs::init_file(LOG_CFG_FILE, Default::default()) {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("Unable to initialize logger from config file. Config file: {}, Error: {}", LOG_CFG_FILE, e);
+            eprintln!("Unable to initialize logger from config file. Config file: {LOG_CFG_FILE}, Error: {e}");
             return false;
         }
     }
+
+    // We can now start logging rather than writing to stderr using eprintln!
+
+    // TODO
+    // TODO
+    // TODO
+    // TODO
+    // TODO Check TMS KeyCmd config file
+
+
+
+
+
+    // match mistrust.check_directory(path_str.clone()) {
+    //     Ok(()) => (),
+    //     Err(e) => {
+    //         eprintln!("Unable to initialize logger config. Path not secure. Path: {} Mistrust error: {}", path_str.clone(), e);
+    //         return false
+    //     }
+    // }
+
+    // // Use Mistrust to check file permissions.
+    // // Check log config file
+    // match mistrust.verifier().require_file().check(LOG_CFG_FILE) {
+    //     Ok(()) => (),
+    //     Err(e) => {
+    //         eprintln!("Logger config file missing or invalid permissions. Config file: {}, Error: {}", LOG_CFG_FILE, e);
+    //         return false;
+    //     }
+    // }
+
     true
 }
 // ------------------------------------------
@@ -271,31 +287,6 @@ pub fn send_request(req_pub_key: &ReqPubKey, tms_url: &String) -> Result<String>
         };
         return Ok(pub_key_str.to_string());
     }
-}
-
-
-// ------------------------------------------
-// get_absolute_path
-// Replace ~ and environment variables using shellexpand.
-// On error, return the original input string.
-// ------------------------------------------
-pub fn get_absolute_path(path: &str) -> String {
-    // Use shellexpand to resolve ~ and env variables
-    let s = match shellexpand::full(path) {
-        Ok(x) => x,
-        Err(_) => return path.to_owned(),
-    };
-    // Use absolutize to convert to absolute path.
-    let p = Path::new(s.deref());
-    let p1 = match p.absolutize() {
-        Ok(x) => x,
-        Err(_) => return path.to_owned(),
-    };
-    let p2 = match p1.to_str() {
-        Some(x) => x,
-        None => return path.to_owned(),
-    };
-    p2.to_owned()
 }
 
 
