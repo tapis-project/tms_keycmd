@@ -88,6 +88,7 @@ pub struct Config {
 //   Initialize tms_keycmd. If init fails log an error and return false.
 // -----------------------------------
 pub fn tms_init() -> bool {
+    // Until logger is initialized, write errors to stderr using eprintln
     // Get current working directory
     let work_dir = match env::current_exe() {
         Ok(d) => d,
@@ -121,7 +122,6 @@ pub fn tms_init() -> bool {
     };
 
     // Initialize logger
-    // On error write to stderr using eprintln
     match log4rs::init_file(LOG_CFG_FILE, Default::default()) {
         Ok(_) => (),
         Err(e) => {
@@ -132,36 +132,19 @@ pub fn tms_init() -> bool {
 
     // We can now start logging rather than writing to stderr using eprintln!
 
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO Check TMS KeyCmd config file
-
-
-
-
-
-    // match mistrust.check_directory(path_str.clone()) {
-    //     Ok(()) => (),
-    //     Err(e) => {
-    //         eprintln!("Unable to initialize logger config. Path not secure. Path: {} Mistrust error: {}", path_str.clone(), e);
-    //         return false
-    //     }
-    // }
-
-    // // Use Mistrust to check file permissions.
-    // // Check log config file
-    // match mistrust.verifier().require_file().check(LOG_CFG_FILE) {
-    //     Ok(()) => (),
-    //     Err(e) => {
-    //         eprintln!("Logger config file missing or invalid permissions. Config file: {}, Error: {}", LOG_CFG_FILE, e);
-    //         return false;
-    //     }
-    // }
+    // Build TMS KeyCmd config file path and check it with mistrust
+    let tms_cfg_path = work_dir.join(CFG_FILE);
+    match mistrust.verifier().require_file().check(&tms_cfg_path) {
+        Ok(p) => p,
+        Err(e) => {
+            log::error!("Mistrust check on TMS config file failed. Path: {} Error: {e}", tms_cfg_path.display());
+            return false
+        }
+    };
 
     true
 }
+
 // ------------------------------------------
 // run
 // Call TMS server and output result to stdout
