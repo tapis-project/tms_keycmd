@@ -88,15 +88,18 @@ pub struct Config {
 //   Initialize tms_keycmd. If init fails log an error and return false.
 // -----------------------------------
 pub fn tms_init() -> bool {
+    println!("Entering init.");
     // Until logger is initialized, write errors to stderr using eprintln
     // Get current working directory
-    let work_dir = match env::current_exe() {
+    let work_dir = match env::current_dir() {
         Ok(d) => d,
         Err(e) => {
             eprintln!("Unable to determine current working directory. Error: {e}");
             return false
         }
     };
+
+    println!("Current working directory: {}", work_dir.to_string_lossy());
 
     // Use Mistrust to check that config files exist and have acceptable permissions
     // Initialize mistrust
@@ -121,6 +124,9 @@ pub fn tms_init() -> bool {
         }
     };
 
+    
+    println!("Finished mistrust check on {}", log_cfg_path.to_string_lossy());
+
     // Initialize logger
     match log4rs::init_file(LOG_CFG_FILE, Default::default()) {
         Ok(_) => (),
@@ -141,6 +147,7 @@ pub fn tms_init() -> bool {
             return false
         }
     };
+    println!("Finished mistrust check on {}", tms_cfg_path.to_string_lossy());
 
     true
 }
