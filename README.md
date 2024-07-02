@@ -36,20 +36,22 @@ configuration files.
 Building the program uses the standard rust ecosystem. For a debug version run
 ``cargo build``. For the release version run ``cargo build --release``.
 
-## Installation
+## Packaging and Installation
 
-Currently, installation is a manual process. Once the program binary is built, the
-binary, shell script and two configuration files must be copied to the desired
-location. For example, if all files are located in the current directory and the
-desired installation directory is ``/etc/ssh/tms_keycmd``, then as root run commands
-similar to the following:
+To build and package the program simply run the script located at *release/build_package.sh*.
+This will create the file *tms_keycmd.tgz* in the current working directory.
+
+To install the program on a host, copy the tar file to the host and unpack it in the desired location.
+For example, if the tar file is at */tmp/tms_keycmd.tgz* and the desired installation directory is
+``/etc/ssh/tms_keycmd``, then as root run commands similar to the following:
 
 ```
 mkdir -p /etc/ssh/tms_keycmd
-cp tms_keycmd tms_keycmd.sh log4rs tms_keycmd.toml /etc/ssh/tms_keycmd/
 cd /etc/ssh/tms_keycmd
-chmod +x tms_keycmd tms_keycmd.sh
+tar -xvf /tmp/tmz_keycmd.tgz
 ```
+
+Then be sure to configure *tms_keycmd* and *SSHD* using the instructions below.
 
 ## Configuration of tms_keycmd
 

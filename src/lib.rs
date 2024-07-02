@@ -88,7 +88,6 @@ pub struct Config {
 //   Initialize tms_keycmd. If init fails log an error and return false.
 // -----------------------------------
 pub fn tms_init() -> bool {
-    println!("Entering init.");
     // Until logger is initialized, write errors to stderr using eprintln
     // Get current working directory
     let work_dir = match env::current_dir() {
@@ -98,8 +97,6 @@ pub fn tms_init() -> bool {
             return false
         }
     };
-
-    println!("Current working directory: {}", work_dir.to_string_lossy());
 
     // Use Mistrust to check that config files exist and have acceptable permissions
     // Initialize mistrust
@@ -124,9 +121,6 @@ pub fn tms_init() -> bool {
         }
     };
 
-    
-    println!("Finished mistrust check on {}", log_cfg_path.to_string_lossy());
-
     // Initialize logger
     match log4rs::init_file(LOG_CFG_FILE, Default::default()) {
         Ok(_) => (),
@@ -147,7 +141,6 @@ pub fn tms_init() -> bool {
             return false
         }
     };
-    println!("Finished mistrust check on {}", tms_cfg_path.to_string_lossy());
 
     true
 }
@@ -168,6 +161,14 @@ pub fn run(cmd_args: CmdArgs) -> bool {
         }
     };
     log::debug!("Running in current working directory: {}", cwd.to_string_lossy());
+    let ce = match env::current_exe() {
+        Ok(path_buf) => path_buf,
+        Err(error) => {
+            log::error!("Unable to determine path to current executable. Error: {error}");
+            return false
+        }
+    };
+    log::debug!("Running with path to exe: {}", ce.to_string_lossy());
     log::debug!("Running with fingerprint: {}", cmd_args.fingerprint);
 
     // Read properties from a config file: tms_url, host_name, client_id, client_secret

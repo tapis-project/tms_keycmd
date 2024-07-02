@@ -1,0 +1,6 @@
+tms-keycmd/deployment directory
+==========================================================================
+Files in active use:
+==========================================================================
+build_package.sh - Script to build and package the TMS KeyCmd utility
+
