@@ -74,9 +74,7 @@ pub struct ReqPubKey {
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub tms_url: String,
-    pub host_name: String,
-    pub client_id: String,
-    pub client_secret: String
+    pub host_name: String
 }
 
 // ==========================================
@@ -171,7 +169,7 @@ pub fn run(cmd_args: CmdArgs) -> bool {
     log::debug!("Running with path to exe: {}", ce.to_string_lossy());
     log::debug!("Running with fingerprint: {}", cmd_args.fingerprint);
 
-    // Read properties from a config file: tms_url, host_name, client_id, client_secret
+    // Read properties from a config file: tms_url, host_name
     // All values are required
     let config: Config =  match Figment::new().merge(Toml::file(CFG_FILE)).extract() {
         Ok(c) => c,
@@ -180,13 +178,10 @@ pub fn run(cmd_args: CmdArgs) -> bool {
             return false
         }
     };
-    log::debug!("Using configuration - tms_url: {} host: {} client_id: {} client_secret: {}",
-               config.tms_url, config.host_name, config.client_id, config.client_secret);
+    log::debug!("Using configuration - tms_url: {} host: {}", config.tms_url, config.host_name);
     // Check that we have all required config settings.
     if config.tms_url.trim().is_empty() { log::error!("Configuration attribute must be set: tms_url"); return false };
     if config.host_name.trim().is_empty() { log::error!("Configuration attribute must be set: host_name"); return false };
-    if config.client_secret.trim().is_empty() { log::error!("Configuration attribute must be set: client_id"); return false };
-    if config.client_id.trim().is_empty() { log::error!("Configuration attribute must be set: client_secret"); return false };
 
     // Build the request body to be sent to the TMS server
     let req_pub_key = ReqPubKey {
@@ -263,7 +258,8 @@ pub fn send_request(req_pub_key: &ReqPubKey, tms_url: &String) -> Result<String>
     let req_pub_key_str = serde_json::to_string(&req_pub_key)?;
     log::debug!("Sending json request body: {}", req_pub_key_str);
     let resp = attohttpc::post(tms_url).json(&req_pub_key)?.send()?;
-    // Find out result status. Do this before getting json because getting json moves the Response value.
+    // Find out result status. Do this before getting json because getting
+    //   the json moves ownership of the Response value.
     let resp_ok = resp.is_success();
     // Convert the response to json and log it
     let resp_json: Value = resp.json()?;

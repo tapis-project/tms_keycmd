@@ -1,0 +1,2 @@
+tms_url="http://localhost:3001/v1/tms/pubkeys/creds/retrieve"
+host_name="testhost1"

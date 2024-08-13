@@ -38,7 +38,7 @@ Building the program uses the standard rust ecosystem. For a debug version run
 
 ## Packaging and Installation
 
-To build and package the program simply run the script located at *release/build_package.sh*.
+To build and package the program simply run the script located at *deployment/build_package.sh*.
 This will create the file *tms_keycmd.tgz* in the current working directory.
 
 To install the program on a host, copy the tar file to the host and unpack it in the desired location.
@@ -56,21 +56,17 @@ Then be sure to configure *tms_keycmd* and *SSHD* using the instructions below.
 ## Configuration of tms_keycmd
 
 The program reads its settings from the configuration file ``tms_keycmd.toml``.
-There are four entries in this file and they must all be modified. The entries
+There are two entries in this file and they must both be modified. The entries
 are:
 
 - tms_url: The URL for the TMS server
 - host_name: The host name to use when calling the TMS server to fetch a public key.
-- client_id: Id of the client that is registered with the TMS server.
-- client_secret: Credential for the client that is registered with the TMS server.
 
 For example:
 
 ```
-tms_url="https://tms-test-server1.tacc.utexas.edu:32201/v1/tms/creds/publickey"
+tms_url="https://tms-test-server1.tacc.utexas.edu:32201/v1/tms/pubkeys/creds/retrieve"
 host_name="stampede3"
-client_id="tacc_tapis"
-client_secret="*****************"
 ```
 
 Note that the attribute ``host_name`` does not need to match the host name reported
