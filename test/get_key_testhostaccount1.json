@@ -2,6 +2,6 @@
   "user": "testhostaccount1",
   "user_uid": "1",
   "host": "testhost1",
-  "public_key_fingerprint": "SHA256:3CN01esFCjwFKOmQvSv+qyo7DZENlkC84bNETsq+x/Q",
+  "public_key_fingerprint": "SHA256:*************************",
   "key_type": "ed25519"
 }

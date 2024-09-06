@@ -1,0 +1,12 @@
+{
+  "expires_at": "2026-08-01T08:05:39Z",
+  "key_bits": "256",
+  "key_type": "ed25519",
+  "max_uses": "999999",
+  "private_key": "********************",
+  "public_key": "********************",
+  "public_key_fingerprint": "********************",
+  "remaining_uses": "999999",
+  "result_code": "0",
+  "result_msg": "success"
+}

@@ -1,0 +1,6 @@
+{
+  "tenant": "test",
+  "client_id": "tapis-client",
+  "client_user_id": "scb@tacc",
+  "ttl_minutes": 999999
+}
