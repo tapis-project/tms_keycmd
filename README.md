@@ -41,7 +41,8 @@ Building the program uses the standard rust ecosystem. For a debug version run
 To build and package the program simply run the script located at *deployment/build_package.sh*.
 This will create the file *tms_keycmd.tgz* in the current working directory.
 
-To install the program on a host, copy the tar file to the host and unpack it in the desired location.
+To install the program on a host, create a local user named ``tms`` and then
+copy the tar file to the host and unpack it in the desired location.
 For example, if the tar file is at */tmp/tms_keycmd.tgz* and the desired installation directory is
 ``/etc/ssh/tms_keycmd``, then as root run commands similar to the following:
 
@@ -49,13 +50,14 @@ For example, if the tar file is at */tmp/tms_keycmd.tgz* and the desired install
 mkdir -p /etc/ssh/tms_keycmd
 cd /etc/ssh/tms_keycmd
 tar -xvf /tmp/tmz_keycmd.tgz
-chown -R /etc/ssh/tms_keycmd nobody
+chown tms:tms log4s.yml tms_keycmd.toml
+chmod go-r log4rs.yml tms_keycmd.toml
 ```
 
 Then be sure to configure *tms_keycmd* and *SSHD* using the instructions below.
-Note that ownership is changed to the user *nobody* because *SSHD* is typically configured to run as this user.
+Note that ownership is changed to the user *tms* because we will configure *SSHD* to run as this user.
 The *tms_keycmd* program must have its configuration files owned by the user running the program.
-If *SSHD* is configured to run as a user other than *nobody* then you must update ownership to that user.
+If *SSHD* is configured to run as a user other than *tms* then you must update ownership to that user.
 
 ## Configuration of tms_keycmd
 
@@ -94,7 +96,7 @@ configuration file might look like this:
 
 ```
 #AuthorizedKeysCommand none
-#AuthorizedKeysCommandUser nobody
+#AuthorizedKeysCommandUser tms
 ```
 
 To configure sshd for tms_keycmd, uncomment both lines and replace ``none`` with the
@@ -103,5 +105,5 @@ in directory ``/etc/ssh/tms_keycmd``, the updated lines would look like this:
 
 ```
 AuthorizedKeysCommand /etc/ssh/tms_keycmd/tms_keycmd.sh %u %U %f %t
-AuthorizedKeysCommandUser nobody
+AuthorizedKeysCommandUser tms
 ```
