@@ -1,8 +1,9 @@
 #!/bin/bash
 #
+REQ_JSON=create_delegations_req.json
 set -xv
-curl -k -X POST -H 'content-type: application/json' \
-       	-H 'X-TMS-TENANT: test' \
-       	-H 'X-TMS-ADMIN-ID: ~~admin' \
-       	-H 'X-TMS-ADMIN-SECRET: ********************' \
-	https://129.114.35.127:3001/v1/tms/delegations -d @create_delegations_req.json
+curl -X POST -H "content-type: application/json" \
+       	-H "X-TMS-TENANT: $TMS_TENANT" \
+       	-H "X-TMS-ADMIN-ID: $TMS_ADM_ID" \
+       	-H "X-TMS-ADMIN-SECRET: $TMS_ADM_KEY" \
+	$TMS_URL/v1/tms/delegations -d @$REQ_JSON

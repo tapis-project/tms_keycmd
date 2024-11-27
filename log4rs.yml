@@ -2,15 +2,26 @@
 refresh_rate: 30 seconds
 
 appenders:
-  # An appender named "all" that writes all messages to a file
-  all:
-    kind: file
-    path: "tms_keycmd.log"
+  # An appender named "roller" that writes all messages to a rolling file
+  roller:
+    kind: rolling_file
+    append: true
+    path: "/etc/ssh/tms_keycmd/logs/tms_keycmd.log"
     encoder:
+      kind: pattern
       pattern: "{d} - {m}{n}"
-
-# Set the default logging level to "debug" and attach the "all" appender to the root
+    policy:
+      kind: compound
+      trigger:
+        kind: size
+        limit: 20 mb
+      roller:
+        kind: fixed_window
+        base: 1
+        count: 5
+        pattern: "/etc/ssh/tms_keycmd/logs/tms_keycmd{}.log"
+# Set the default logging level to "debug" and attach the "roller" appender to the root
 root:
   level: debug
   appenders:
-    - all
+    - roller

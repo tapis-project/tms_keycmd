@@ -16,6 +16,9 @@ Cargo.lock
 # VIM swap file
 *.swp
 
+# JetBrains RustRover files
+.idea
+
 # VSCode files
 .vscode
 

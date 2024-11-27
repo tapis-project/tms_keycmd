@@ -1,0 +1,6 @@
+export TMS_URL=https://tms-server-stage.tacc.utexas.edu:3000
+export TMS_TENANT="test"
+export TMS_CLIENT_ID="testclient1"
+export TMS_CLIENT_KEY="secret1"
+export TMS_ADM_ID="~~admin"
+export TMS_ADM_KEY=""

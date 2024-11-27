@@ -1,0 +1,6 @@
+{
+  "client_id": "tapis",
+  "tenant": "default",
+  "app_name": "tapis-app",
+  "app_version": "0.1"
+}

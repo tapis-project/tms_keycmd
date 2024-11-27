@@ -49,9 +49,13 @@ For example, if the tar file is at */tmp/tms_keycmd.tgz* and the desired install
 mkdir -p /etc/ssh/tms_keycmd
 cd /etc/ssh/tms_keycmd
 tar -xvf /tmp/tmz_keycmd.tgz
+chown -R /etc/ssh/tms_keycmd nobody
 ```
 
 Then be sure to configure *tms_keycmd* and *SSHD* using the instructions below.
+Note that ownership is changed to the user *nobody* because *SSHD* is typically configured to run as this user.
+The *tms_keycmd* program must have its configuration files owned by the user running the program.
+If *SSHD* is configured to run as a user other than *nobody* then you must update ownership to that user.
 
 ## Configuration of tms_keycmd
 
@@ -76,7 +80,7 @@ operating system allows for supporting a machine that might be referenced using
 many different host names, such as ``login1.stampede3.tacc.utexas.edu``,
 ``stampede3.tacc.utexas.edu``, ``stampede3``, ``129.114.63.133``, etc.
 For example, for the Tapis v3 deployment at TACC, any Tapis system registered using
-any of the aforementioned host names will route to the same machine.
+any of the aforementioned host names will route to the same cluster.
 
 ## Configuration of SSHD
 
