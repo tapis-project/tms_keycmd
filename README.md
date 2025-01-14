@@ -49,8 +49,9 @@ For example, if the tar file is at */tmp/tms_keycmd.tgz* and the desired install
 ```
 mkdir -p /etc/ssh/tms_keycmd
 cd /etc/ssh/tms_keycmd
-tar -xvf /tmp/tmz_keycmd.tgz
-chown tms:tms log4s.yml tms_keycmd.toml
+tar -xvf /tmp/tms_keycmd.tgz
+chown tms:tms . *
+chown root:root tms_keycmd.sh
 chmod go-r log4rs.yml tms_keycmd.toml
 ```
 
@@ -58,6 +59,8 @@ Then be sure to configure *tms_keycmd* and *SSHD* using the instructions below.
 Note that ownership is changed to the user *tms* because we will configure *SSHD* to run as this user.
 The *tms_keycmd* program must have its configuration files owned by the user running the program.
 If *SSHD* is configured to run as a user other than *tms* then you must update ownership to that user.
+Note also that *SSHD* requires that the *AuthorizedKeysCommand* be owned by ``root`` and not writable by
+group or others.
 
 ## Configuration of tms_keycmd
 
@@ -96,7 +99,7 @@ configuration file might look like this:
 
 ```
 #AuthorizedKeysCommand none
-#AuthorizedKeysCommandUser tms
+#AuthorizedKeysCommandUser nobody
 ```
 
 To configure sshd for tms_keycmd, uncomment both lines and replace ``none`` with the
@@ -107,3 +110,6 @@ in directory ``/etc/ssh/tms_keycmd``, the updated lines would look like this:
 AuthorizedKeysCommand /etc/ssh/tms_keycmd/tms_keycmd.sh %u %U %f %t
 AuthorizedKeysCommandUser tms
 ```
+
+Note that *SSHD* requires that the *AuthorizedKeysCommand* be owned by ``root`` and not writable by
+group or others.
