@@ -47,15 +47,23 @@ For example, if the tar file is at */tmp/tms_keycmd.tgz* and the desired install
 ``/etc/ssh/tms_keycmd``, then as root run commands similar to the following:
 
 ```
-mkdir -p /etc/ssh/tms_keycmd
+chown tms:tms /tmp/tms_keycmd.tgz
+mkdir -p /etc/ssh/tms_keycmd/logs
+touch /etc/ssh/tms_keycmd/logs/tms_keycmd.log
 cd /etc/ssh/tms_keycmd
 tar -xvf /tmp/tms_keycmd.tgz
-chown tms:tms . *
-chown root:root tms_keycmd.sh
-chmod go-r log4rs.yml tms_keycmd.toml
+chown tms:tms -R *
+chown root:tms . tms_keycmd.sh
+chmod go-r . *
+chmod go-w .
+chmod +x tms_keycmd tms_keycmd.sh
+chmod g+r tms_keycmd.sh
 ```
 
 Then be sure to configure *tms_keycmd* and *SSHD* using the instructions below.
+In particular, remember to update the files *tms_keycmd.toml* and *sshd_config* before
+the final step of re-starting the sshd service.
+
 Note that ownership is changed to the user *tms* because we will configure *SSHD* to run as this user.
 The *tms_keycmd* program must have its configuration files owned by the user running the program.
 If *SSHD* is configured to run as a user other than *tms* then you must update ownership to that user.
@@ -113,3 +121,9 @@ AuthorizedKeysCommandUser tms
 
 Note that *SSHD* requires that the *AuthorizedKeysCommand* be owned by ``root`` and not writable by
 group or others.
+
+Finally, as user root, re-start the sshd service:
+
+```
+systemctl restart sshd.service
+```

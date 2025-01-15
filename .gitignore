@@ -22,8 +22,7 @@ Cargo.lock
 # VSCode files
 .vscode
 
-# Config file
+# Ignore various tms files that might be generated as part of testing
 tms_keycmd.toml
-
-# Log file
 tms_keycmd.log
+tms_keycmd.tgz

@@ -41,7 +41,7 @@ cp $TOP_FILES target/release/tms_keycmd $STG_DIR
 # Change to the staging dir and set permissions on files
 cd "$STG_DIR"/. || exit
 chmod 600 $TOP_FILES
-chmod 700 tms_keycmd
+chmod 700 tms_keycmd tms_keycmd.sh
 
 # Create the tar file in the current working directory of invoking user
 echo "Creating compressed tar archive at path: $TGZ_PATH"
