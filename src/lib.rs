@@ -201,8 +201,8 @@ pub fn run(cmd_args: CmdArgs) -> bool {
         }
     };
     // Write the public key to stdout
-    log::debug!("Writing public key to stdout: {pub_key_str}");
-    print!("{}", pub_key_str);
+    log::debug!("Writing public key to stdout using println: {pub_key_str}");
+    println!("{}", pub_key_str);
     match io::stdout().flush() {
         Ok(()) => return true,
         Err(error) => {

@@ -7,6 +7,8 @@
 RUN_DIR="$(pwd -P)"
 
 # Determine absolute path to location from which we are running.
+#   We must run from that location in order for tms_keycmd to find
+#   its configuration files.
 # Note that output is sent to /dev/null in the unlikely case that the cd command
 #   generates extraneous output that would interfere with the surrounding $()
 # The -P option on pwd is for better handling of symlinks.
@@ -20,7 +22,11 @@ cd $PRG_PATH
 # Run the TMS KeyCmd program with all arguments passed on the command line.
 # Note that "$@" is used so that original order and grouping is perserved.
 #   For example, input arguments might look like this: "a b 'c d'"
-./tms_keycmd "$@"
+# Note also that running the command directly does not work for some linux
+#   distriubtions, for example rocky linux 8.10. Not clear why. Problem
+#   apparently related to shell environment.
+CMD="./tms_keycmd $@"
+/bin/bash -c "$CMD"
 
 # Return to original directory
 cd $RUN_DIR

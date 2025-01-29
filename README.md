@@ -70,6 +70,12 @@ If *SSHD* is configured to run as a user other than *tms* then you must update o
 Note also that *SSHD* requires that the *AuthorizedKeysCommand* be owned by ``root`` and not writable by
 group or others.
 
+### Note on shared library compatibility
+
+Please note that it may be necessary to build the *tms_keycmd* binary on the target host.
+Building on the target host should ensure that all required shared libraries are available
+and compatible.
+
 ## Configuration of tms_keycmd
 
 The program reads its settings from the configuration file ``tms_keycmd.toml``.
