@@ -5,6 +5,14 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+build = "build.rs"
+
+[build-dependencies]
+# All features enabled
+#vergen-gitcl = { version = "1.0.0", features = ["build", "cargo", "rustc", "si"] }
+# Selected features
+vergen-gitcl = { version = "1.0.5", features = ["build"] }
+
 [dependencies]
 anyhow = "1.0.83"
 attohttpc = { version = "0.28.0", features = ["json"] }

@@ -101,6 +101,20 @@ many different host names, such as ``login1.stampede3.tacc.utexas.edu``,
 For example, for the Tapis v3 deployment at TACC, any Tapis system registered using
 any of the aforementioned host names will route to the same cluster.
 
+## Manual testing
+
+It is advisable to manually test the *tms_keycmd* binary once it is installed and configured.
+Often when the the program fails the *sshd* log will not be helpful. To test, use the TMS server
+to create an ssh keypair. Using the fingerprint from the generated key, run a command similar
+to the following:
+
+```
+sudo su - tms -c "/etc/ssh/tms_keycmd/tms_keycmd.sh testuser2 1003 <fingerprint> ssh-ed25519"
+```
+
+The output should be a single line containing the public key from the generated keypair.
+
+
 ## Configuration of SSHD
 
 To configure a host to make use of tms_keycmd, the sshd configuration file on

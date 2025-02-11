@@ -26,3 +26,7 @@ Cargo.lock
 tms_keycmd.toml
 tms_keycmd.log
 tms_keycmd.tgz
+
+# Local test files
+test_local/
+test_flow_local/
