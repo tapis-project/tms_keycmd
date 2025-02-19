@@ -8,6 +8,8 @@ PrgName=$(basename "$0")
 
 USAGE="Usage: $PrgName"
 
+# Cleanup and define temp staging area
+rm -fr /tmp/tms_keycmd_staging
 STG_DIR=/tmp/tms_keycmd_staging
 
 # Check number of arguments
