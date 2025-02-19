@@ -70,6 +70,23 @@ If *SSHD* is configured to run as a user other than *tms* then you must update o
 Note also that *SSHD* requires that the *AuthorizedKeysCommand* be owned by ``root`` and not writable by
 group or others.
 
+### File permissions and ownership
+
+Once the program is installed, ownership and permissions should look similar to the following:
+
+```
+# pwd
+/etc/ssh/tms_keycmd
+# ls -la
+drwx--x--x. 3 root tms     4096 Feb 11 22:46 .
+drwxr-xr-x. 4 root root    4096 Feb 10 22:04 ..
+-rw-------. 1 tms  tms      680 Jan 15 20:43 log4rs.yml
+drwx--x--x. 2 tms  tms       28 Jan 28 15:42 logs
+-rwxrwxr-x. 1 tms  tms  3428888 Jan 28 19:18 tms_keycmd
+-rwxr-x--x. 1 root tms      994 Jan 28 22:35 tms_keycmd.sh
+-rw-------. 1 tms  tms      111 Feb 11 22:46 tms_keycmd.toml
+```
+
 ### Note on shared library compatibility
 
 Please note that it may be necessary to build the *tms_keycmd* binary on the target host.
