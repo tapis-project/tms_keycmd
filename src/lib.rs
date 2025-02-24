@@ -109,16 +109,6 @@ pub fn tms_init() -> bool {
             }
         };
 
-    // Build log config file path and check it with mistrust
-    let log_cfg_path = work_dir.join(LOG_CFG_FILE);
-    match mistrust.verifier().require_file().check(&log_cfg_path) {
-        Ok(p) => p,
-        Err(e) => {
-            eprintln!("Mistrust check on log config file failed. Path: {} Error: {e}", log_cfg_path.display());
-            return false
-        }
-    };
-
     // Initialize logger
     match log4rs::init_file(LOG_CFG_FILE, Default::default()) {
         Ok(_) => (),
