@@ -25,16 +25,29 @@ use tms_keycmd::{self}; // Include everything from lib.rs
 // 
 // ****************************************************************************
 
+// ==========================================
+// Constants
+// ==========================================
+
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 // -----------------------------------
 // Main
 // -----------------------------------
 fn main() {
+
+    // Collect command line arguments. If first argument is --version then print version and exit
+    let args: Vec<String> = env::args().collect();
+    if args.len() > 1 && args[1].clone().trim() == "--version" {
+        println!("TMS keycmd v{}", VERSION);
+        process::exit(0);
+    }
+
     // Check config and initialize. If init fails it will log an error and return false.
     if !tms_keycmd::tms_init() { process::exit(1); }
 
     // Log startup and collect command line arguments
-    log::info!("TMS keycmd v0.0.1");
-    let args: Vec<String> = env::args().collect();
+    log::info!("TMS keycmd v{}", VERSION);
 
     // Parse command line arguments
     let cmd_args = tms_keycmd::parse_args(&args).unwrap_or_else(|err| {

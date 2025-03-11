@@ -1,7 +1,9 @@
 [package]
 name = "tms_keycmd"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+description = "SSH AuthorizedKeysCommand for Trust Manager System (TMS)"
+license = "BSD-3-Clause"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

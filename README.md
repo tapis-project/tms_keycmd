@@ -31,6 +31,9 @@ The main program is written in rust. There is also a wrapper shell script that a
 the program to be invoked from an arbitrary location and still locate the tms_keycmd
 configuration files.
 
+The program may be run with the single command line argument ``--version``.
+In this case it will print the version to the console and exit.
+
 ## Building
 
 Building the program uses the standard rust ecosystem. For a debug version run

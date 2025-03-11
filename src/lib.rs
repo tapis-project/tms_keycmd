@@ -6,7 +6,11 @@ use std::io::Write;
 use std::str;
 use anyhow::{Result, anyhow};
 use figment::{Figment, providers::{Format, Toml}};
-use fs_mistrust::Mistrust;
+use log::LevelFilter;
+use log4rs::append::console::ConsoleAppender;
+use log4rs::encode::pattern::PatternEncoder;
+use log4rs::config::{Appender, Config, Logger, Root};
+
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
 
@@ -69,10 +73,10 @@ pub struct ReqPubKey {
 }
 
 // ------------------------------------------
-// Config
+// TMSConfig
 // ------------------------------------------
 #[derive(Deserialize, Debug)]
-pub struct Config {
+pub struct TMSConfig {
     pub tms_url: String,
     pub host_name: String
 }
@@ -96,41 +100,40 @@ pub fn tms_init() -> bool {
         }
     };
 
-    // Use Mistrust to check that config files exist and have acceptable permissions
-    // Initialize mistrust
-    let mistrust = match Mistrust::builder()
-        .ignore_prefix(&work_dir)
-        .trust_group(0)
-        .build() {
-            Ok(m) => m,
-            Err(e) => {
-                eprintln!("Unable to initialize mistrust. Error: {e}");
-                return false
-            }
-        };
-
     // Initialize logger
     match log4rs::init_file(LOG_CFG_FILE, Default::default()) {
-        Ok(_) => (),
+        Ok(_) => {return true},
         Err(e) => {
             eprintln!("Unable to initialize logger from config file. Config file: {LOG_CFG_FILE}, Error: {e}");
+        }
+    }
+    // Problem with log file. Fall back to console output
+    // NOTE that if the log config file is missing we will reach this point,
+    //   but if the config file is present and readable but has a problem we may not.
+    //   For example, if there is a path set to a file that does not exist we may see this error:
+    //      log4rs: error deserializing appender roller: Permission denied (os error 13)
+    //      log4rs: Reference to nonexistent appender: `roller`
+    // There does not seem to be a way to catch the cfg error and proceed.
+    eprintln!("Problem with logger config file. Logging to console.");
+    let console_log = ConsoleAppender::builder()
+        .encoder(Box::new(PatternEncoder::new("{d} - {m}{n}")))
+        .build();
+
+    let log_config = Config::builder()
+        .appender(Appender::builder().build("console", Box::new(console_log)))
+        .logger(Logger::builder().build("console", LevelFilter::Debug))
+        .build(Root::builder().appender("console").build(LevelFilter::Debug))
+        .expect("Unable to initialize logger for console output. Aborting.");
+    // Initialize logger
+    match log4rs::init_config(log_config) {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Unable to initialize logger for output to console. Error: {e}");
             return false;
         }
     }
-
-    // We can now start logging rather than writing to stderr using eprintln!
-
-    // Build TMS KeyCmd config file path and check it with mistrust
-    let tms_cfg_path = work_dir.join(CFG_FILE);
-    match mistrust.verifier().require_file().check(&tms_cfg_path) {
-        Ok(p) => p,
-        Err(e) => {
-            log::error!("Mistrust check on TMS config file failed. Path: {} Error: {e}", tms_cfg_path.display());
-            return false
-        }
-    };
-
-    true
+    log::info!("Running from directory: {}", work_dir.to_string_lossy());
+    return true;
 }
 
 // ------------------------------------------
@@ -161,29 +164,29 @@ pub fn run(cmd_args: CmdArgs) -> bool {
 
     // Read properties from a config file: tms_url, host_name
     // All values are required
-    let config: Config =  match Figment::new().merge(Toml::file(CFG_FILE)).extract() {
+    let tms_config: TMSConfig =  match Figment::new().merge(Toml::file(CFG_FILE)).extract() {
         Ok(c) => c,
         Err(error) => {
             log::error!("Error reading config file. File: {CFG_FILE}. Error: {error}");
             return false
         }
     };
-    log::debug!("Using configuration - tms_url: {} host: {}", config.tms_url, config.host_name);
+    log::debug!("Using configuration - tms_url: {} host: {}", tms_config.tms_url, tms_config.host_name);
     // Check that we have all required config settings.
-    if config.tms_url.trim().is_empty() { log::error!("Configuration attribute must be set: tms_url"); return false };
-    if config.host_name.trim().is_empty() { log::error!("Configuration attribute must be set: host_name"); return false };
+    if tms_config.tms_url.trim().is_empty() { log::error!("Configuration attribute must be set: tms_url"); return false };
+    if tms_config.host_name.trim().is_empty() { log::error!("Configuration attribute must be set: host_name"); return false };
 
     // Build the request body to be sent to the TMS server
     let req_pub_key = ReqPubKey {
         user: cmd_args.username,
         user_uid: cmd_args.userid.to_string(),
-        host: config.host_name,
+        host: tms_config.host_name,
         public_key_fingerprint: cmd_args.fingerprint,
         key_type: cmd_args.keytype
     };
 
     // Send the post request and extract the public key from the response
-    let pub_key_str = match send_request(&req_pub_key, &config.tms_url) {
+    let pub_key_str = match send_request(&req_pub_key, &tms_config.tms_url) {
         Ok(pub_key) => pub_key,
         Err(error) => {
             log::error!("Error retrieving public key from TMS server. Error: {error}");
