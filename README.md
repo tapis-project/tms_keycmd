@@ -44,19 +44,16 @@ Building the program uses the standard rust ecosystem. For a debug version run
 To build and package the program simply run the script located at *deployment/build_package.sh*.
 This will create the file *tms_keycmd.tgz* in the current working directory.
 
-To install the program on a host, create a local user named ``tms`` and then
-copy the tar file to the host and unpack it in the desired location.
+To install the program on a host, copy the tar file to the host and unpack it in the desired location.
 For example, if the tar file is at */tmp/tms_keycmd.tgz* and the desired installation directory is
 ``/etc/ssh/tms_keycmd``, then as root run commands similar to the following:
 
 ```
-chown tms:tms /tmp/tms_keycmd.tgz
-mkdir -p /etc/ssh/tms_keycmd/logs
-touch /etc/ssh/tms_keycmd/logs/tms_keycmd.log
+mkdir -p /etc/ssh/tms_keycmd
 cd /etc/ssh/tms_keycmd
 tar -xvf /tmp/tms_keycmd.tgz
-chown tms:tms -R *
-chown root:tms . tms_keycmd.sh
+chown nobody:nogroup -R *
+chown root:nogroup . tms_keycmd.sh
 chmod go-r . *
 chmod go-w .
 chmod +x tms_keycmd tms_keycmd.sh
@@ -67,9 +64,9 @@ Then be sure to configure *tms_keycmd* and *SSHD* using the instructions below.
 In particular, remember to update the files *tms_keycmd.toml* and *sshd_config* before
 the final step of re-starting the sshd service.
 
-Note that ownership is changed to the user *tms* because we will configure *SSHD* to run as this user.
+Note that ownership is changed to the user *nobody* because we will configure *SSHD* to run as this user.
 The *tms_keycmd* program must have its configuration files owned by the user running the program.
-If *SSHD* is configured to run as a user other than *tms* then you must update ownership to that user.
+If *SSHD* is configured to run as a user other than *nobody* then you must update ownership to that user.
 Note also that *SSHD* requires that the *AuthorizedKeysCommand* be owned by ``root`` and not writable by
 group or others.
 
@@ -81,13 +78,14 @@ Once the program is installed, ownership and permissions should look similar to 
 # pwd
 /etc/ssh/tms_keycmd
 # ls -la
-drwx--x--x. 3 root tms     4096 Feb 11 22:46 .
-drwxr-xr-x. 4 root root    4096 Feb 10 22:04 ..
--rw-------. 1 tms  tms      680 Jan 15 20:43 log4rs.yml
-drwx--x--x. 2 tms  tms       28 Jan 28 15:42 logs
--rwxrwxr-x. 1 tms  tms  3428888 Jan 28 19:18 tms_keycmd
--rwxr-x--x. 1 root tms      994 Jan 28 22:35 tms_keycmd.sh
--rw-------. 1 tms  tms      111 Feb 11 22:46 tms_keycmd.toml
+drwx--x--x  3 root   nogroup    4096 Mar 12 13:25 .
+drwxr-xr-x 13 root   root       4096 Mar 12 13:30 ..
+-rw-------  1 nobody nogroup    6342 Mar 12 13:25 README.md
+-rw-------  1 nobody nogroup     680 Mar 12 13:25 log4rs.yml
+drwx--x--x  2 nobody nogroup    4096 Mar 12 13:27 logs
+-rwx--x--x  1 nobody nogroup 3290712 Mar 12 13:25 tms_keycmd
+-rwxr-x--x  1 root   nogroup    1282 Mar 12 13:25 tms_keycmd.sh
+-rw-------  1 nobody nogroup     111 Mar 12 13:28 tms_keycmd.toml
 ```
 
 ### Note on shared library compatibility

@@ -36,17 +36,22 @@ cd ..
 echo "Building executable from directory: $(pwd)"
 cargo build --release
 
-# Create a staging directory and copy files
-mkdir $STG_DIR
+# Create a staging directory and empty log file
+mkdir -p $STG_DIR/logs
+touch $STG_DIR/logs/tms_keycmd.log
+# Copy files to staging dir
 cp $TOP_FILES target/release/tms_keycmd $STG_DIR
 
-# Change to the staging dir and set permissions on files
+# Change to staging dir and set permissions
 cd "$STG_DIR"/. || exit
 chmod 600 $TOP_FILES
 chmod 700 tms_keycmd tms_keycmd.sh
 
 # Create the tar file in the current working directory of invoking user
 echo "Creating compressed tar archive at path: $TGZ_PATH"
+if [ -f "$TGZ_PATH" ]; then
+  rm "$TGZ_PATH"
+fi
 tar -czf "$TGZ_PATH" .
 
 # Switch back to current working directory of invoking user
