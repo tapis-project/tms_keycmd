@@ -127,7 +127,7 @@ to create an ssh keypair. Using the fingerprint from the generated key, run a co
 to the following:
 
 ```
-sudo su - tms -c "/etc/ssh/tms_keycmd/tms_keycmd.sh testuser2 1003 <fingerprint> ssh-ed25519"
+/etc/ssh/tms_keycmd/tms_keycmd.sh testuser2 1003 <fingerprint> ssh-ed25519
 ```
 
 The output should be a single line containing the public key from the generated keypair.
@@ -154,7 +154,7 @@ in directory ``/etc/ssh/tms_keycmd``, the updated lines would look like this:
 
 ```
 AuthorizedKeysCommand /etc/ssh/tms_keycmd/tms_keycmd.sh %u %U %f %t
-AuthorizedKeysCommandUser tms
+AuthorizedKeysCommandUser nobody
 ```
 
 Note that *SSHD* requires that the *AuthorizedKeysCommand* be owned by ``root`` and not writable by

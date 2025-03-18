@@ -1,7 +1,7 @@
 This directory contains files and documentation for creating an rpm package of
 the TMS KeyCmd utility.
 
-Initial work on Rocky Linux 8, Tapis test VM (129.114.35.122)
+Initial work on Rocky Linux 8, Tapis test VM tapisv3-vm2 (129.114.35.122)
 
 Install git so we can checkout source:
   dnf install git
@@ -17,10 +17,11 @@ Install some supporting packages, not clear if all needed:
   dnf install dnf makecache --refresh
   dnf install fedora-packager
   dnf install rpmautospec
-TBD - Use rust2rpm, how to install?
+TBD - Use rust2rpm? how to install?
 
 For mock, need to add user "tms" to the group:
   usermod -G mock -a tms
+TBD - use mock?
 
 
   
