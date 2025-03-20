@@ -80,6 +80,7 @@ Once the program is installed, ownership and permissions should look similar to 
 # ls -la
 drwx--x--x  3 root   nogroup    4096 Mar 12 13:25 .
 drwxr-xr-x 13 root   root       4096 Mar 12 13:30 ..
+-rw-------  1 nobody nogroup    6342 Mar 12 13:25 LICENSE
 -rw-------  1 nobody nogroup    6342 Mar 12 13:25 README.md
 -rw-------  1 nobody nogroup     680 Mar 12 13:25 log4rs.yml
 drwx--x--x  2 nobody nogroup    4096 Mar 12 13:27 logs

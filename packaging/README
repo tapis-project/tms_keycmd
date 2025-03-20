@@ -24,4 +24,25 @@ For mock, need to add user "tms" to the group:
 TBD - use mock?
 
 
-  
+Record of procedure used on tapisv3-vm2 (as user tms):
+
+  # Create the initial project
+  rpmdev-setuptree
+  # Move to the build dir
+  cd rpmbuild
+  # Set up the initial spec template
+  rpmdev-newspec tms-keycmd
+  # Update file SPECS/tms-keycmd.spec
+  mv tms-keycmd.spec SPECS
+  vi SPECS/tms-keycmd.spec
+  # Copy the tms_keycmd pkg for current version to SOURCES
+  cp /tmp/tms-keycmd-0.1.0.tgz ./SOURCES
+  # Check spec file for errors
+  rpmlist ./SPECS/tms-keycmd.spec
+  # Create the .src.rpm file
+  rpmbuild -bs ./SPECS/tms-keycmd.spec
+  # Create the final .rpm file
+  rpmbuild -ba ./SPECS/tms-keycmd.spec
+  # NOTE can use -bb to build src.rpm and .rpm
+  # To list contents of .rpm package, e.g.
+  rpm -qlpv ./RPMS/noarch/tms-keycmd-0.1.0-1.el8.noarch.rpm

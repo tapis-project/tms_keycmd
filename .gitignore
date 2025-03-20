@@ -23,8 +23,8 @@ Cargo.lock
 .vscode
 
 # Ignore various tms files that might be generated as part of testing
-tms_keycmd.log
-tms_keycmd.tgz
+tms_keycmd*.log
+tms-keycmd*.tgz
 
 # Local test files
 test_local/

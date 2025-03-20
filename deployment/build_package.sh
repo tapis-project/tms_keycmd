@@ -8,10 +8,6 @@ PrgName=$(basename "$0")
 
 USAGE="Usage: $PrgName"
 
-# Cleanup and define temp staging area
-rm -fr /tmp/tms_keycmd_staging
-STG_DIR=/tmp/tms_keycmd_staging
-
 # Check number of arguments
 if [ $# -ne 0 ]; then
   echo "$USAGE"
@@ -25,11 +21,18 @@ export PRG_RELPATH=$(dirname "$0")
 cd "$PRG_RELPATH"/. || exit
 export PRG_PATH=$(pwd)
 
+# Determine the app version
+VERS=$(cargo pkgid | cut -d "#" -f2)
+
+# Cleanup and define temp staging area
+rm -fr /tmp/tms_keycmd_staging
+STG_DIR=/tmp/tms_keycmd_staging/tms-keycmd-${VERS}
+
 # Path to final tar archive to be created
-TGZ_PATH="$RUN_DIR"/tms_keycmd.tgz
+TGZ_PATH="$RUN_DIR"/tms-keycmd-${VERS}.tgz
 
 # List of files from the repo top level that are to be included
-TOP_FILES="log4rs.yml tms_keycmd.toml tms_keycmd.sh README.md"
+TOP_FILES="log4rs.yml tms_keycmd.toml tms_keycmd.sh README.md LICENSE"
 
 # Build the executable from the top level of the repo
 cd ..
@@ -52,7 +55,9 @@ echo "Creating compressed tar archive at path: $TGZ_PATH"
 if [ -f "$TGZ_PATH" ]; then
   rm "$TGZ_PATH"
 fi
-tar -czf "$TGZ_PATH" .
+# Move up one level so our final tar file is all under one dir when unpacked.
+cd "$STG_DIR"/.. || exit
+tar -czf "$TGZ_PATH" tms-keycmd-${VERS}
 
 # Switch back to current working directory of invoking user
 cd "$RUN_DIR"
