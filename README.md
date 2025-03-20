@@ -49,12 +49,14 @@ For example, if the tar file is at ``/tmp/tms-keycmd-0.1.0.tgz`` and the desired
 ``/etc/ssh/tms_keycmd``, then as root run commands similar to the following:
 
 ```
+# Use nogroup for ubuntu and nobody for CentOS/Rocky
+export NOGROUP=nogroup
 cd /etc/ssh
 tar -xvf /tmp/tms-keycmd-0.1.0.tgz
 mv tms-keycmd-0.1.0 tms_keycmd
 cd tms_keycmd
-chown nobody:nogroup -R *
-chown root:nogroup . tms_keycmd.sh
+chown nobody:${NOGROUP} -R *
+chown root:${NOGROUP} . tms_keycmd.sh
 chmod go-r . *
 chmod go-w .
 chmod +x tms_keycmd tms_keycmd.sh

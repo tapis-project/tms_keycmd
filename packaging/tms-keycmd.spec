@@ -35,15 +35,15 @@ cp -r * $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
 rm -fr $RPM_BUILD_ROOT
 
 %files
-%dir %attr(711,root,nogroup) %{_sysconfdir}/ssh/tms_keycmd
-%dir %attr(711,nobody,nogroup) %{_sysconfdir}/ssh/tms_keycmd/logs
-%attr(711,nobody,nogroup) %{_sysconfdir}/ssh/tms_keycmd/logs/tms_keycmd.log
-%attr(711,root,nogroup) %{_sysconfdir}/ssh/tms_keycmd/tms_keycmd.sh
-%attr(711,nobody,nogroup) %{_sysconfdir}/ssh/tms_keycmd/tms_keycmd
-%attr(600,nobody,nogroup) %{_sysconfdir}/ssh/tms_keycmd/tms_keycmd.toml
-%attr(600,nobody,nogroup) %{_sysconfdir}/ssh/tms_keycmd/log4rs.yml
-%attr(-,nobody,nogroup) %license %{_sysconfdir}/ssh/tms_keycmd/LICENSE
-%attr(-,nobody,nogroup) %{_sysconfdir}/ssh/tms_keycmd/README.md
+%dir %attr(711,root,nobody) %{_sysconfdir}/ssh/tms_keycmd
+%dir %attr(711,nobody,nobody) %{_sysconfdir}/ssh/tms_keycmd/logs
+%attr(711,nobody,nobody) %{_sysconfdir}/ssh/tms_keycmd/logs/tms_keycmd.log
+%attr(751,root,nobody) %{_sysconfdir}/ssh/tms_keycmd/tms_keycmd.sh
+%attr(711,nobody,nobody) %{_sysconfdir}/ssh/tms_keycmd/tms_keycmd
+%attr(600,nobody,nobody) %{_sysconfdir}/ssh/tms_keycmd/tms_keycmd.toml
+%attr(600,nobody,nobody) %{_sysconfdir}/ssh/tms_keycmd/log4rs.yml
+%attr(-,nobody,nobody) %license %{_sysconfdir}/ssh/tms_keycmd/LICENSE
+%attr(-,nobody,nobody) %{_sysconfdir}/ssh/tms_keycmd/README.md
 
 %changelog
 * Thu Mar 20 2025 scblack
