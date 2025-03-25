@@ -28,8 +28,12 @@ VERS=$(cargo pkgid | cut -d "#" -f2)
 rm -fr /tmp/tms_keycmd_staging
 STG_DIR=/tmp/tms_keycmd_staging/tms-keycmd-${VERS}
 
-# Path to final tar archive to be created
-TGZ_PATH="$RUN_DIR"/tms-keycmd-${VERS}.tgz
+# Path in current dir to final tar archive to be created
+TGZ_FILE="tms-keycmd-${VERS}.tgz"
+TGZ_PATH="$RUN_DIR/$TGZ_FILE"
+
+# Path to tgz file in rpm source directory
+RPM_TGZ_PATH="${PRG_PATH}/../packaging/rpmbuild/SOURCES/${TGZ_FILE}"
 
 # List of files from the repo top level that are to be included
 TOP_FILES="log4rs.yml tms_keycmd.toml tms_keycmd.sh README.md LICENSE"
@@ -58,6 +62,12 @@ fi
 # Move up one level so our final tar file is all under one dir when unpacked.
 cd "$STG_DIR"/.. || exit
 tar -czf "$TGZ_PATH" tms-keycmd-${VERS}
+
+# Copy the tgz file to the rpmbuild source directory
+if [ -f "$RPM_TGZ_PATH" ]; then
+  rm "${RPM_TGZ_PATH}"
+fi
+cp "$TGZ_PATH" "${RPM_TGZ_PATH}"
 
 # Switch back to current working directory of invoking user
 cd "$RUN_DIR"

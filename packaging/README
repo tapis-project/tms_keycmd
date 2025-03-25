@@ -46,3 +46,8 @@ Record of procedure used on tapisv3-vm2 (as user tms):
   # NOTE can use -bb to build src.rpm and .rpm
   # To list contents of .rpm package, e.g.
   rpm -qlpv ./RPMS/noarch/tms-keycmd-0.1.0-1.el8.noarch.rpm
+
+ # ==================================
+ # Building on ubuntu: https://www.heatware.net/linux/rpmbuild-ubuntu-create-rpm
+
+ # ==================================

@@ -29,3 +29,9 @@ tms-keycmd*.tgz
 # Local test files
 test_local/
 test_flow_local/
+
+# RPM build files
+# Standard directories under rpmbuild are BUILD, RPMS, SOURCES, SPECS, SRPMS
+# Directories BUILD and SRPMS contain files generated during a build.
+packaging/rpmbuild/BUILD
+packaging/rpmbuild/SRPMS

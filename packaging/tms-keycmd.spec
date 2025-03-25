@@ -3,7 +3,7 @@ Version:        0.1.0
 Release:        1%{?dist}
 Summary:        TMS KeyCmd utility program
 BuildArch:      x86_64
-#BuildArch:      noarch
+#BuildArch:      aarch64
 
 License:        BSD-3-Clause
 URL:            https://tms-documentation.readthedocs.io/en/latest/index.html

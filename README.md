@@ -42,7 +42,8 @@ Building the program uses the standard rust ecosystem. For a debug version run
 ## Packaging and Installation
 
 To build and package the program simply run the script located at *deployment/build_package.sh*.
-This will create the file ``tms-keycmd-<version>.tgz`` in the current working directory.
+This will create the file ``tms-keycmd-<version>.tgz`` in the current working directory and also
+make a copy in directory *packaging/rpmbuild/SOURCES*
 
 To install the program on a host, copy the tar file to the host and unpack it in the desired location.
 For example, if the tar file is at ``/tmp/tms-keycmd-0.1.0.tgz`` and the desired installation directory is
