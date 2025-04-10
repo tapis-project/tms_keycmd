@@ -13,16 +13,15 @@ Install some supporting packages, not clear if all needed:
   dnf install rpmdevtools
   dnf install rpmlint
   dnf install epel-release
+
+TBD - Use rust2rpm? how to install?
+TBD - use mock?
   dnf install mock
   dnf install dnf makecache --refresh
   dnf install fedora-packager
   dnf install rpmautospec
-TBD - Use rust2rpm? how to install?
-
 For mock, need to add user "tms" to the group:
   usermod -G mock -a tms
-TBD - use mock?
-
 
 Record of procedure used on tapisv3-vm2 (as user tms):
 
@@ -48,6 +47,7 @@ Record of procedure used on tapisv3-vm2 (as user tms):
   rpm -qlpv ./RPMS/noarch/tms-keycmd-0.1.0-1.el8.noarch.rpm
 
  # ==================================
+ # References:
+ # Basic redhat: https://www.redhat.com/en/blog/create-rpm-package
  # Building on ubuntu: https://www.heatware.net/linux/rpmbuild-ubuntu-create-rpm
-
  # ==================================
