@@ -2,8 +2,8 @@ Name:           tms-keycmd
 Version:        0.1.1
 Release:        1%{?dist}
 Summary:        TMS KeyCmd utility program
-BuildArch:      x86_64
-#BuildArch:      aarch64
+ExclusiveArch:  x86_64
+#ExclusiveArch:  aarch64
 
 License:        BSD-3-Clause
 URL:            https://tms-documentation.readthedocs.io/en/latest/index.html
@@ -24,12 +24,6 @@ option for retrieving authorized public keys.
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd/logs
 cp -r * $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
-#cp tms_keycmd $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
-#cp tms_keycmd.sh $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
-#cp tms_keycmd.toml $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
-#cp log4rs.yml $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
-#cp README.md $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
-#cp LICENSE $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
 
 %clean
 rm -fr $RPM_BUILD_ROOT
