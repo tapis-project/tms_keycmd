@@ -10,7 +10,7 @@ URL:            https://tms-documentation.readthedocs.io/en/latest/index.html
 Source0:        %{name}-%{version}.tgz
 
 #BuildRequires:  
-Requires:       bash
+#Requires:       bash
 
 %description
 Trust Manager System (TMS) program to support the SSH AuthorizedKeysCommand
