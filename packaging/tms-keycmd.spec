@@ -9,7 +9,7 @@ License:        BSD-3-Clause
 URL:            https://tms-documentation.readthedocs.io/en/latest/index.html
 Source0:        %{name}-%{version}.tgz
 
-#BuildRequires:  
+#BuildRequires:
 #Requires:       bash
 
 %description
@@ -21,12 +21,12 @@ option for retrieving authorized public keys.
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -fr $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd/logs
 cp -r * $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
 
 %clean
-rm -fr $RPM_BUILD_ROOT
+rm -fr $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
 
 %files
 %dir %attr(711,root,nobody) %{_sysconfdir}/ssh/tms_keycmd
