@@ -20,6 +20,7 @@ option for retrieving authorized public keys.
 %autosetup
 
 
+# NOTE: During cleanup only remove specific dir to avoid interfering with others.
 %install
 rm -fr $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd/logs
@@ -40,5 +41,5 @@ rm -fr $RPM_BUILD_ROOT/%{_sysconfdir}/ssh/tms_keycmd
 %attr(-,nobody,nobody) %{_sysconfdir}/ssh/tms_keycmd/README.md
 
 %changelog
-* Thu Mar 20 2025 scblack
+* Thu Apr 17 2025 scblack
 - Initial version.

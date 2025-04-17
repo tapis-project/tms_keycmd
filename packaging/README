@@ -14,15 +14,6 @@ Install some supporting packages, not clear if all needed:
   dnf install rpmlint
   dnf install epel-release
 
-TBD - Use rust2rpm? how to install?
-TBD - use mock?
-  dnf install mock
-  dnf install dnf makecache --refresh
-  dnf install fedora-packager
-  dnf install rpmautospec
-For mock, need to add user "tms" to the group:
-  usermod -G mock -a tms
-
 Record of procedure used on tapisv3-vm2 (as user tms):
 
   # Create the initial project
@@ -37,17 +28,20 @@ Record of procedure used on tapisv3-vm2 (as user tms):
   # Copy the tms_keycmd pkg for current version to SOURCES
   cp /tmp/tms-keycmd-0.1.0.tgz ./SOURCES
   # Check spec file for errors
-  rpmlist ./SPECS/tms-keycmd.spec
+  rpmlint ./SPECS/tms-keycmd.spec
   # Create the .src.rpm file
   rpmbuild -bs ./SPECS/tms-keycmd.spec
   # Create the final .rpm file
-  rpmbuild -ba ./SPECS/tms-keycmd.spec
-  # NOTE can use -bb to build src.rpm and .rpm
+  rpmbuild -bb ./SPECS/tms-keycmd.spec
+  # NOTE can use -ba to build src.rpm and .rpm
   # To list contents of .rpm package, e.g.
   rpm -qlpv ./RPMS/noarch/tms-keycmd-0.1.0-1.el8.noarch.rpm
 
- # ==================================
+ # ==============================================================================
  # References:
  # Basic redhat: https://www.redhat.com/en/blog/create-rpm-package
  # Building on ubuntu: https://www.heatware.net/linux/rpmbuild-ubuntu-create-rpm
- # ==================================
+ #
+ # For info on RPM builds at TACC: 
+ # https://tacc-main.atlassian.net/wiki/spaces/CIC/pages/647266351/TMS+KeyCmd+RPM
+ # ==============================================================================
